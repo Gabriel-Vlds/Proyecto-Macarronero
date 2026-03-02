@@ -1,0 +1,42 @@
+<!-- Layout principal: header, contenido por rutas y footer. -->
+<div class="app">
+  <header class="site-header">
+    <div class="container header__inner">
+      <a class="logo" routerLink="/">Macarronero</a>
+      <nav class="nav">
+        <a routerLink="/courses" routerLinkActive="active">Cursos</a>
+        <a routerLink="/kits" routerLinkActive="active">Kits</a>
+        <a routerLink="/account" routerLinkActive="active">Mi cuenta</a>
+      </nav>
+      <div class="actions">
+        @if (auth.isLoggedIn()) {
+          <a class="profile-link" routerLink="/account" aria-label="Ir a mi perfil">
+            <span class="profile-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" role="img" focusable="false">
+                <path
+                  d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm0 2c-3.3 0-8 1.7-8 5v1h16v-1c0-3.3-4.7-5-8-5Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </span>
+            <span class="profile-text">Perfil</span>
+          </a>
+        } @else {
+          <a class="btn btn--ghost" routerLink="/login">Login</a>
+          <a class="btn btn--primary" routerLink="/register">Registro</a>
+        }
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <router-outlet></router-outlet>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer__inner">
+      <p>Plataforma segura para cursos de reposteria.</p>
+      <span>El Macarronero: cursos, kits y recetas artesanales.</span>
+    </div>
+  </footer>
+</div>

@@ -1,0 +1,98 @@
+<!-- Home principal con hero, cursos y kits destacados. -->
+<section class="hero">
+  <div class="hero__content">
+    <p class="hero__kicker">El Macarronero</p>
+    <h1>Reposteria artesanal con historia, tecnica y sabor.</h1>
+    <p class="hero__lead">
+      Conoce a Chef Javi y descubre sus especialidades: roles de canela, galletas y brookies.
+      Aprende con cursos guiados y encuentra MacarroKits pensados para emprender.
+    </p>
+    <div class="hero__actions">
+      <a class="btn btn--primary" routerLink="/courses">Ver cursos</a>
+      <a class="btn btn--ghost" routerLink="/kits">Explorar kits</a>
+    </div>
+    <div class="hero__stats">
+      <div>
+        <span class="stat">+40</span>
+        <span class="label">recetas guiadas</span>
+      </div>
+      <div>
+        <span class="stat">Chef Javi</span>
+        <span class="label">maestro repostero</span>
+      </div>
+      <div>
+        <span class="stat">MacarroKits</span>
+        <span class="label">listos para emprender</span>
+      </div>
+    </div>
+  </div>
+  <div class="hero__panel">
+    <div class="card">
+      <p class="card__title">Chef Javi</p>
+      <p class="card__body">
+        Comparte tecnica, oficio y recetas nacidas en la cocina de El Macarronero.
+      </p>
+      <ul class="card__list">
+        <li>Especialidades artesanales</li>
+        <li>Formacion por niveles</li>
+        <li>MacarroKits con todo lo necesario</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="showcase">
+  <div class="section__header">
+    <div>
+      <h2>Cursos destacados</h2>
+      <p>Aprende tecnicas clave con recetas guiadas.</p>
+    </div>
+    <a class="link" routerLink="/courses">Ver todos</a>
+  </div>
+  <div class="grid">
+    @if (loading) {
+      <div class="skeleton"></div>
+      <div class="skeleton"></div>
+      <div class="skeleton"></div>
+    } @else {
+      @for (course of courses; track course.id) {
+        <article class="tile">
+          <h3>{{ course.title }}</h3>
+          <p>{{ course.description || 'Curso creado para dominar tecnicas clave.' }}</p>
+          <div class="meta">
+            <span>{{ course.level }}</span>
+            <span>${{ course.price }}</span>
+          </div>
+        </article>
+      }
+    }
+  </div>
+</section>
+
+<section class="showcase">
+  <div class="section__header">
+    <div>
+      <h2>MacarroKits</h2>
+      <p>Kits pensados para emprender sin preocuparte por insumos.</p>
+    </div>
+    <a class="link" routerLink="/kits">Ver kits</a>
+  </div>
+  <div class="grid">
+    @if (loading) {
+      <div class="skeleton"></div>
+      <div class="skeleton"></div>
+      <div class="skeleton"></div>
+    } @else {
+      @for (kit of kits; track kit.id) {
+        <article class="tile">
+          <h3>{{ kit.name }}</h3>
+          <p>{{ kit.description || 'Kit inicial con ingredientes y herramientas.' }}</p>
+          <div class="meta">
+            <span>Stock {{ kit.stock }}</span>
+            <span>${{ kit.price }}</span>
+          </div>
+        </article>
+      }
+    }
+  </div>
+</section>

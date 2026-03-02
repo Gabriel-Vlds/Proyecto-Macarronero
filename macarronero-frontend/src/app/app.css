@@ -1,0 +1,119 @@
+/* Estilos del layout principal, header y footer. */
+.app {
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+}
+
+.site-header {
+	position: sticky;
+	top: 0;
+	background: #1c232c;
+	backdrop-filter: blur(10px);
+	border-bottom: 1px solid #1c232c;
+	z-index: 10;
+}
+
+.header__inner {
+	display: grid;
+	grid-template-columns: auto 1fr auto;
+	align-items: center;
+	gap: 1.5rem;
+	padding: 1rem 0;
+}
+
+.logo {
+	font-family: var(--font-display);
+	font-size: 1.4rem;
+	color: #eeeff0;
+	text-decoration: none;
+}
+
+.nav {
+	display: flex;
+	gap: 1.5rem;
+	font-size: 0.95rem;
+}
+
+.nav a {
+	text-decoration: none;
+	color: #8c9495;
+}
+
+.nav a.active {
+	color: #eeeff0;
+	font-weight: 600;
+}
+
+.actions {
+	display: flex;
+	gap: 0.75rem;
+}
+
+/* Botones en el header oscuro necesitan colores invertidos */
+.site-header .btn--ghost {
+	color: #eeeff0;
+	border-color: rgba(238, 239, 240, 0.45);
+}
+
+.site-header .btn--ghost:hover {
+	background: rgba(238, 239, 240, 0.1);
+}
+
+.profile-link {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.6rem;
+	padding: 0.45rem 0.9rem;
+	border-radius: 999px;
+	text-decoration: none;
+	color: var(--color-ink);
+	background: var(--color-surface);
+	box-shadow: var(--shadow-soft);
+}
+
+.profile-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	border-radius: 50%;
+	background: rgba(140, 148, 149, 0.35);
+	color: var(--color-ink);
+}
+
+.profile-icon svg {
+	width: 18px;
+	height: 18px;
+}
+
+.site-footer {
+	margin-top: auto;
+	padding: 2rem 0;
+	border-top: 1px solid #1c232c;
+	background: #1c232c;
+}
+
+.footer__inner {
+	display: flex;
+	justify-content: space-between;
+	gap: 1rem;
+	color: #eeeff0;
+	font-size: 0.9rem;
+}
+
+@media (max-width: 900px) {
+	.header__inner {
+		grid-template-columns: 1fr;
+		justify-items: start;
+	}
+
+	.nav {
+		flex-wrap: wrap;
+	}
+
+	.footer__inner {
+		flex-direction: column;
+	}
+}

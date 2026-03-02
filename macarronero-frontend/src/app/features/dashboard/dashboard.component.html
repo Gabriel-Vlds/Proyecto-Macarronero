@@ -1,0 +1,146 @@
+<!-- Panel con resumen de la plataforma. -->
+<section class="dashboard">
+  <header class="dashboard__header">
+    <div>
+      <h1>Panel administrador</h1>
+      <p>CRUD real de cursos, kits y clientes.</p>
+    </div>
+  </header>
+
+  @if (message) {
+    <p class="note">{{ message }}</p>
+  }
+
+  <div class="dashboard__grid">
+    <div class="panel">
+      <h2>Nuevo curso</h2>
+      <form (ngSubmit)="createCourse()">
+        <label>
+          Titulo
+          <input [(ngModel)]="courseForm.title" name="title" required />
+        </label>
+        <label>
+          Descripcion
+          <textarea [(ngModel)]="courseForm.description" name="description"></textarea>
+        </label>
+        <label>
+          Precio
+          <input type="number" [(ngModel)]="courseForm.price" name="price" required />
+        </label>
+        <label>
+          Nivel
+          <select [(ngModel)]="courseForm.level" name="level">
+            <option value="beginner">Principiante</option>
+            <option value="intermediate">Intermedio</option>
+            <option value="advanced">Avanzado</option>
+          </select>
+        </label>
+        <label>
+          Tipo
+          <select [(ngModel)]="courseForm.tier" name="tier">
+            <option value="basic">Basico</option>
+            <option value="premium">Premium</option>
+          </select>
+        </label>
+        <button class="btn btn--primary" type="submit">Crear</button>
+      </form>
+    </div>
+
+    <div class="panel">
+      <h2>Nuevo kit</h2>
+      <form (ngSubmit)="createKit()">
+        <label>
+          Nombre
+          <input [(ngModel)]="kitForm.name" name="name" required />
+        </label>
+        <label>
+          Descripcion
+          <textarea [(ngModel)]="kitForm.description" name="kitDescription"></textarea>
+        </label>
+        <label>
+          Precio
+          <input type="number" [(ngModel)]="kitForm.price" name="kitPrice" required />
+        </label>
+        <label>
+          Stock
+          <input type="number" [(ngModel)]="kitForm.stock" name="stock" required />
+        </label>
+        <button class="btn btn--primary" type="submit">Crear</button>
+      </form>
+    </div>
+
+    <div class="panel">
+      <h2>Actualizar cliente</h2>
+      <form (ngSubmit)="updateUser()">
+        <label>
+          ID Cliente
+          <input type="number" [(ngModel)]="userUpdate.id" name="userId" required />
+        </label>
+        <label>
+          Nombre
+          <input [(ngModel)]="userUpdate.name" name="userName" />
+        </label>
+        <label>
+          Email
+          <input type="email" [(ngModel)]="userUpdate.email" name="userEmail" />
+        </label>
+        <label>
+          Rol
+          <select [(ngModel)]="userUpdate.role" name="userRole">
+            <option value="customer">Cliente</option>
+            <option value="admin">Admin</option>
+          </select>
+        </label>
+        <button class="btn btn--primary" type="submit">Actualizar</button>
+      </form>
+    </div>
+  </div>
+
+  <section class="list">
+    <h2>Cursos existentes</h2>
+    <div class="list__grid">
+      @for (course of courses; track course.id) {
+        <article class="card">
+          <input [(ngModel)]="course.title" name="courseTitle{{ course.id }}" />
+          <textarea [(ngModel)]="course.description" name="courseDesc{{ course.id }}"></textarea>
+          <div class="row">
+            <input type="number" [(ngModel)]="course.price" name="coursePrice{{ course.id }}" />
+            <select [(ngModel)]="course.level" name="courseLevel{{ course.id }}">
+              <option value="beginner">Principiante</option>
+              <option value="intermediate">Intermedio</option>
+              <option value="advanced">Avanzado</option>
+            </select>
+          </div>
+          <select [(ngModel)]="course.tier" name="courseTier{{ course.id }}">
+            <option value="basic">Basico</option>
+            <option value="premium">Premium</option>
+          </select>
+          <div class="row">
+            <button class="btn btn--ghost" (click)="updateCourse(course)">Guardar</button>
+            <button class="btn btn--danger" (click)="deleteCourse(course.id)">Eliminar</button>
+          </div>
+        </article>
+      }
+    </div>
+  </section>
+
+  <section class="list">
+    <h2>Kits existentes</h2>
+    <div class="list__grid">
+      @for (kit of kits; track kit.id) {
+        <article class="card">
+          <input [(ngModel)]="kit.name" name="kitName{{ kit.id }}" />
+          <textarea [(ngModel)]="kit.description" name="kitDesc{{ kit.id }}"></textarea>
+          <div class="row">
+            <input type="number" [(ngModel)]="kit.price" name="kitPrice{{ kit.id }}" />
+            <input type="number" [(ngModel)]="kit.stock" name="kitStock{{ kit.id }}" />
+          </div>
+          <div class="row">
+            <button class="btn btn--ghost" (click)="updateKit(kit)">Guardar</button>
+            <button class="btn btn--danger" (click)="deleteKit(kit.id)">Eliminar</button>
+          </div>
+        </article>
+      }
+    </div>
+  </section>
+</section>

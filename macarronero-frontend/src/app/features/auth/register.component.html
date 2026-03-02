@@ -1,0 +1,27 @@
+<!-- Formulario de registro para crear cuenta. -->
+<section class="auth">
+  <div class="auth__panel">
+    <h1>Crear cuenta</h1>
+    <p>Registra tu correo para acceder a cursos y compras.</p>
+
+    @if (error) {
+      <p class="note">{{ error }}</p>
+    }
+
+    <form (ngSubmit)="submit()">
+      <label>
+        Nombre
+        <input type="text" [(ngModel)]="name" name="name" required />
+      </label>
+      <label>
+        Correo
+        <input type="email" [(ngModel)]="email" name="email" required />
+      </label>
+      <label>
+        Contrasena
+        <input type="password" [(ngModel)]="password" name="password" required />
+      </label>
+      <button class="btn btn--primary" type="submit">Crear cuenta</button>
+    </form>
+  </div>
+</section>

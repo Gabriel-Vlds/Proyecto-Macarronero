@@ -1,0 +1,59 @@
+<!-- Vista del perfil del usuario: cursos y kits comprados. -->
+<section class="account">
+  <header class="account__header">
+    <div>
+      <h1>Mi cuenta</h1>
+      <p>Hola, {{ auth.user()?.name || 'Usuario' }}.</p>
+    </div>
+    <button class="btn btn--ghost" (click)="logout()">Cerrar sesion</button>
+  </header>
+
+  <div class="account__grid">
+    <div class="panel">
+      <h2>Mis cursos</h2>
+      @if (loading) {
+        <p>Cargando...</p>
+      } @else if (enrollmentsError) {
+        <p class="note">{{ enrollmentsError }}</p>
+        <a class="btn btn--primary" routerLink="/courses">Ver cursos</a>
+      } @else if (enrollments.length === 0) {
+        <p>No tienes cursos adquiridos.</p>
+        <a class="btn btn--primary" routerLink="/courses">Ver cursos</a>
+      } @else {
+        <ul class="purchased-list">
+          @for (item of enrollments; track item.id) {
+            <li>
+              <a [routerLink]="['/courses', item.course_id]">
+                {{ item.title || ('Curso #' + item.course_id) }}
+              </a>
+              <span class="badge">{{ item.level }}</span>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+
+    <div class="panel">
+      <h2>Mis kits</h2>
+      @if (loading) {
+        <p>Cargando...</p>
+      } @else if (purchasesError) {
+        <p class="note">{{ purchasesError }}</p>
+        <a class="btn btn--ghost" routerLink="/kits">Ver kits</a>
+      } @else if (purchases.length === 0) {
+        <p>No tienes kits comprados.</p>
+        <a class="btn btn--ghost" routerLink="/kits">Ver kits</a>
+      } @else {
+        <ul class="purchased-list">
+          @for (item of purchases; track item.id) {
+            <li>
+              {{ item.name || ('Kit #' + item.kit_id) }}
+              <span class="badge">x{{ item.quantity }}</span>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  </div>
+</section>
+

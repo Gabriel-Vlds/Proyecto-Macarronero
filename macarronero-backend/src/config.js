@@ -1,0 +1,25 @@
+// Configuracion central del backend: puerto, DB, JWT y CORS.
+require('dotenv').config();
+
+const config = {
+  port: Number(process.env.PORT || 3000),
+  db: {
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || 'macarronero'
+  },
+  jwt: {
+    secret: process.env.JWT_SECRET || 'dev_secret',
+    expiresIn: process.env.JWT_EXPIRES_IN || '7d'
+  },
+  corsOrigin: process.env.CORS_ORIGIN || '*',
+  stripe: {
+    secretKey: process.env.STRIPE_SECRET_KEY || '',
+    webhookSecret: process.env.STRIPE_WEBHOOK_SECRET || '',
+    successUrl: process.env.STRIPE_SUCCESS_URL || 'http://localhost:4200/account?checkout=success',
+    cancelUrl: process.env.STRIPE_CANCEL_URL || 'http://localhost:4200/?checkout=cancel'
+  }
+};
+
+module.exports = { config };

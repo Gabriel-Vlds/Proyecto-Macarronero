@@ -1,0 +1,40 @@
+/* Estilos del formulario de registro. */
+.auth {
+  min-height: 70vh;
+  display: grid;
+  place-items: center;
+  padding: 3rem 0;
+}
+
+.auth__panel {
+  width: min(420px, 90%);
+  background: var(--color-surface);
+  padding: 2.5rem;
+  border-radius: 24px;
+  box-shadow: var(--shadow-strong);
+}
+
+.auth__panel form {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+label {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+  color: var(--color-muted);
+}
+
+input {
+  padding: 0.75rem 0.9rem;
+  border-radius: 12px;
+  border: 1px solid #ded7cc;
+  font-size: 0.95rem;
+}
+
+.note {
+  color: var(--color-accent);
+  margin-top: 1rem;
+}

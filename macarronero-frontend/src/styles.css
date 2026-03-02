@@ -1,0 +1,83 @@
+/* Estilos globales y variables de tema para toda la app. */
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700&family=Manrope:wght@300;400;600&display=swap');
+
+:root {
+	--font-display: 'Fraunces', serif;
+	--font-body: 'Manrope', sans-serif;
+	--color-ink: #1c232c;
+	--color-muted: #6e6d6f;
+	--color-accent: #8c9495;
+	--color-surface: #eeeff0;
+	--color-soft: #898c94;
+	--shadow-soft: 0 12px 26px rgba(28, 35, 44, 0.12);
+	--shadow-strong: 0 20px 42px rgba(28, 35, 44, 0.2);
+}
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	font-family: var(--font-body);
+	color: var(--color-ink);
+	background: linear-gradient(135deg, #eeeff0 0%, #898c94 100%);
+	min-height: 100vh;
+}
+
+a {
+	color: inherit;
+}
+
+h1,
+h2,
+h3 {
+	font-family: var(--font-display);
+}
+
+.container {
+	width: min(1100px, 92%);
+	margin: 0 auto;
+}
+
+.btn {
+	border: 0;
+	padding: 0.7rem 1.4rem;
+	border-radius: 999px;
+	font-size: 0.9rem;
+	font-weight: 600;
+	cursor: pointer;
+	text-decoration: none;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn--primary {
+	background: #1c232c;
+	color: #eeeff0;
+	box-shadow: var(--shadow-soft);
+}
+
+.btn--ghost {
+	background: transparent;
+	border: 1px solid rgba(140, 148, 149, 0.6);
+	color: var(--color-ink);
+}
+
+.btn--danger {
+	background: #b94a3b;
+	color: #fff;
+}
+
+.btn:hover {
+	transform: translateY(-2px);
+	box-shadow: var(--shadow-strong);
+}
+
+.link {
+	text-decoration: none;
+	color: var(--color-accent);
+	font-weight: 600;
+}

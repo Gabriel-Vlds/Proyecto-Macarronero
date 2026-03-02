@@ -1,0 +1,93 @@
+<!-- Detalle del curso con lecciones protegidas y bloqueo anti-grabacion -->
+<section class="cd" [class.cd--blocked]="screenBlocked">
+
+  <header class="cd__header">
+    <div>
+      <h1>{{ course?.title ?? 'Detalle del curso' }}</h1>
+      @if (course) {
+        <p>{{ getLevelLabel(course.level) }} &middot; ${{ course.price }}</p>
+      }
+    </div>
+    <a class="btn btn--ghost" routerLink="/courses">&#8592; Cursos</a>
+  </header>
+
+  @if (loading) {
+    <p class="cd__status">Cargando...</p>
+
+  } @else if (error) {
+    <p class="cd__status cd__status--error">{{ error }}</p>
+
+  } @else if (notEnrolled) {
+    <!-- Vista de bloqueo: usuario no inscrito -->
+    <div class="cd__lock">
+      <div class="cd__lock-icon">&#128274;</div>
+      <h2>Contenido exclusivo</h2>
+      @if (course) {
+        <p>Este curso tiene <strong>{{ course.level === 'beginner' ? '' : 'contenido avanzado y ' }}{{ lessons.length || '' }} lecciones</strong> disponibles para quienes lo han comprado.</p>
+        <p class="cd__lock-desc">{{ course.description }}</p>
+      }
+      <div class="cd__lock-actions">
+        @if (auth.isLoggedIn()) {
+          <a class="btn btn--primary" routerLink="/courses">Comprar este curso</a>
+        } @else {
+          <a class="btn btn--primary" routerLink="/login">Inicia sesion para comprar</a>
+          <a class="btn btn--ghost" routerLink="/register">Crear cuenta</a>
+        }
+      </div>
+    </div>
+
+  } @else {
+    <!-- Vista de lecciones: usuario inscrito -->
+    <div class="cd__body">
+
+      <aside class="cd__card">
+        @if (course) {
+          <span class="badge" [class.badge--premium]="course.tier === 'premium'">
+            {{ course.tier === 'premium' ? 'Premium' : 'Basico' }}
+          </span>
+          <h2>{{ course.title }}</h2>
+          <p>{{ course.description }}</p>
+          <div class="cd__meta">
+            <span>{{ getLevelLabel(course.level) }}</span>
+            <span>{{ lessons.length }} lecciones</span>
+          </div>
+        }
+      </aside>
+
+      <div class="cd__lessons">
+        <h3>Contenido del curso</h3>
+        <p class="cd__warning">&#128274; Contenido protegido &mdash; no compartas este material.</p>
+
+        @for (lesson of lessons; track lesson.id; let i = $index) {
+          <div class="lesson" [class.lesson--open]="expandedId === lesson.id">
+            <button class="lesson__header" (click)="toggle(lesson.id)">
+              <span class="lesson__num">{{ i + 1 }}</span>
+              <span class="lesson__title">{{ lesson.title }}</span>
+              @if (lesson.duration_min) {
+                <span class="lesson__dur">{{ lesson.duration_min }} min</span>
+              }
+              <span class="lesson__arrow">{{ expandedId === lesson.id ? '&#9650;' : '&#9660;' }}</span>
+            </button>
+            @if (expandedId === lesson.id) {
+              <div class="lesson__body no-select">
+                <p>{{ lesson.content }}</p>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Overlay de bloqueo por foco perdido -->
+  @if (screenBlocked && !notEnrolled && !loading && !error) {
+    <div class="screen-guard">
+      <div class="screen-guard__card">
+        <span class="screen-guard__icon">&#128274;</span>
+        <h3>Contenido protegido</h3>
+        <p>Vuelve a enfocar esta pestana para continuar.</p>
+      </div>
+    </div>
+  }
+
+</section>

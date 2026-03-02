@@ -1,0 +1,35 @@
+Paleta de colores
+#1c232c, #eeeff0, #6e6d6f, #8c9495, #898c94
+
+Color fondo de logo: #1a212b, #19202a
+Colores logo: #242b35, #222931
+
+Fuentes del logo:
+
+EM: Gloock-Regular_3, PlayfairDisplaySC-Bold_2
+
+El Macarronero: Sanchez-Regular, ZillaSlab-Regular, DejaVuSerif
+
+Chef Javi: Arvo, RokkittSemiBold-Regular, Battambang-Regular_2
+
+
+Estructura de la pagina:
+
+Index
+Header< logo y botones
+
+Body<
+    seccion presentando a javi alias el Macarronero
+    Seccion con imagnes svg o fotos de los roles y galletas
+    seccion explicando los macarrokits
+    >
+Footer
+
+Iconos svg:
+Rol canela: 
+
+Galleta: 
+
+Brookie: https://img.icons8.com/external-vitaliy-gorbachev-lineal-vitaly-gorbachev/60/external-brownie-fast-food-vitaliy-gorbachev-lineal-vitaly-gorbachev.png
+
+

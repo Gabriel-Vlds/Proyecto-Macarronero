@@ -1,0 +1,48 @@
+<!-- Lista de kits disponibles para comprar. -->
+<section class="page">
+  <div class="page__header">
+    <div>
+      <h1>MacarroKits</h1>
+      <p>Todo lo que necesitas para emprender, en un kit.</p>
+    </div>
+  </div>
+
+  @if (error) {
+    <p class="note">{{ error }}</p>
+  }
+
+  <div class="grid">
+    @if (loading) {
+      <div class="skeleton"></div>
+      <div class="skeleton"></div>
+      <div class="skeleton"></div>
+    } @else {
+      @for (kit of kits; track kit.id) {
+        <article class="tile">
+          <h3>{{ kit.name }}</h3>
+          <p>{{ kit.description || 'Kit con ingredientes y utensilios.' }}</p>
+          <div class="meta">
+            <span>Stock: {{ kit.stock }}</span>
+            <span>${{ kit.price }}</span>
+          </div>
+          @if (kit.stock > 0) {
+            <div class="qty-row">
+              <button class="btn btn--ghost btn--sm" (click)="setQty(kit.id, -1)" [disabled]="quantities[kit.id] <= 1">−</button>
+              <span class="qty-val">{{ quantities[kit.id] || 1 }}</span>
+              <button class="btn btn--ghost btn--sm" (click)="setQty(kit.id, 1)" [disabled]="quantities[kit.id] >= kit.stock">+</button>
+            </div>
+          }
+          <button
+            class="btn btn--primary"
+            [disabled]="kit.stock === 0 || buyingId === kit.id"
+            (click)="buy(kit)"
+          >
+            @if (kit.stock === 0) { Sin stock }
+            @else if (buyingId === kit.id) { Procesando... }
+            @else { Comprar ${{ kit.price }} }
+          </button>
+        </article>
+      }
+    }
+  </div>
+</section>

@@ -1,0 +1,182 @@
+/* Estilos de detalle del curso con lecciones y proteccion anti-grabacion. */
+
+/* ── Pagina ─────────────────────────────────────── */
+.cd {
+  position: relative;
+  padding: 2.5rem 0 4rem;
+}
+
+/* ── Cabecera ───────────────────────────────────── */
+.cd__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  gap: 1rem;
+}
+.cd__header h1 { margin-bottom: 0.25rem; }
+.cd__header p  { color: var(--color-muted); font-size: 0.95rem; }
+
+/* ── Estado (cargando / error) ──────────────────── */
+.cd__status { color: var(--color-muted); }
+.cd__status--error { color: var(--color-accent); }
+
+/* ── Vista de bloqueo (no inscrito) ────────────── */
+.cd__lock {
+  background: var(--color-surface);
+  border-radius: 20px;
+  padding: 3rem 2rem;
+  text-align: center;
+  box-shadow: var(--shadow-soft);
+  max-width: 520px;
+  margin: 0 auto;
+}
+.cd__lock-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+.cd__lock h2 { margin-bottom: 0.75rem; }
+.cd__lock p  { color: var(--color-muted); line-height: 1.6; margin-bottom: 0.5rem; }
+.cd__lock-desc {
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+.cd__lock-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ── Cuerpo con lecciones ──────────────────────── */
+.cd__body {
+  display: grid;
+  gap: 1.5rem;
+}
+@media (min-width: 820px) {
+  .cd__body {
+    grid-template-columns: 280px 1fr;
+    align-items: start;
+  }
+}
+
+/* ── Tarjeta lateral ───────────────────────────── */
+.cd__card {
+  background: var(--color-surface);
+  border-radius: 18px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-soft);
+  position: sticky;
+  top: 1.5rem;
+}
+.cd__card h2 { margin: 0.5rem 0 0.5rem; font-size: 1.1rem; }
+.cd__card p  { color: var(--color-muted); font-size: 0.9rem; line-height: 1.55; }
+.cd__meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: var(--color-muted);
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border, #e8e3d8);
+}
+
+/* ── Lecciones ─────────────────────────────────── */
+.cd__lessons h3 { margin-bottom: 0.5rem; }
+.cd__warning {
+  font-size: 0.8rem;
+  color: var(--color-muted);
+  margin-bottom: 1rem;
+}
+
+.lesson {
+  border: 1px solid var(--color-border, #e8e3d8);
+  border-radius: 12px;
+  margin-bottom: 0.5rem;
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+}
+.lesson--open {
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+
+.lesson__header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.9rem 1rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-size: 0.95rem;
+  color: inherit;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+.lesson__header:hover { background: rgba(0,0,0,0.03); }
+
+.lesson__num {
+  min-width: 1.8rem;
+  height: 1.8rem;
+  border-radius: 50%;
+  background: var(--color-primary, #d4a853);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.lesson--open .lesson__num { background: var(--color-accent, #b87845); }
+
+.lesson__title { flex: 1; font-weight: 500; }
+.lesson__dur   { font-size: 0.8rem; color: var(--color-muted); flex-shrink: 0; }
+.lesson__arrow { font-size: 0.7rem; color: var(--color-muted); flex-shrink: 0; }
+
+.lesson__body {
+  padding: 0.75rem 1rem 1rem 3.25rem;
+  font-size: 0.92rem;
+  line-height: 1.65;
+  color: var(--color-text, #3a2e1e);
+  border-top: 1px solid var(--color-border, #e8e3d8);
+  background: rgba(255,255,255,0.6);
+}
+
+/* ── Anti-grabacion: sin seleccion de texto ────── */
+.no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* ── Blur cuando se bloquea el contenido ─────── */
+.cd--blocked .cd__body {
+  filter: blur(8px);
+  pointer-events: none;
+}
+
+/* ── Overlay al perder el foco ──────────────── */
+.screen-guard {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  background: rgba(20, 15, 8, 0.82);
+  backdrop-filter: blur(4px);
+}
+.screen-guard__card {
+  background: var(--color-surface, #faf6ee);
+  padding: 2rem 2.5rem;
+  border-radius: 20px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+  max-width: 380px;
+  text-align: center;
+}
+.screen-guard__icon { font-size: 2.5rem; display: block; margin-bottom: 0.75rem; }
+.screen-guard__card h3 { margin-bottom: 0.5rem; }
+.screen-guard__card p  { color: var(--color-muted); font-size: 0.9rem; }

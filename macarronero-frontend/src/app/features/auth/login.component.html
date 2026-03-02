@@ -1,0 +1,23 @@
+<!-- Formulario de login para acceder a la cuenta. -->
+<section class="auth">
+  <div class="auth__panel">
+    <h1>Iniciar sesion</h1>
+    <p>Accede con tu cuenta para ver cursos y compras.</p>
+
+    @if (error) {
+      <p class="note">{{ error }}</p>
+    }
+
+    <form (ngSubmit)="submit()">
+      <label>
+        Correo
+        <input type="email" [(ngModel)]="email" name="email" required />
+      </label>
+      <label>
+        Contrasena
+        <input type="password" [(ngModel)]="password" name="password" required />
+      </label>
+      <button class="btn btn--primary" type="submit">Entrar</button>
+    </form>
+  </div>
+</section>
