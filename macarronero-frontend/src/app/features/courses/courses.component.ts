@@ -2,7 +2,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { catchError, of } from 'rxjs';
+import { catchError, finalize, of, timeout } from 'rxjs';
 import { CoursesService } from '../../core/services/courses.service';
 import { EnrollmentsService } from '../../core/services/enrollments.service';
 import { PaymentsService } from '../../core/services/payments.service';
@@ -42,15 +42,23 @@ export class CoursesComponent implements OnInit {
       this.checkoutMessage = 'Pago confirmado. Estamos actualizando tu acceso.';
     }
 
-    this.coursesService.list().pipe(catchError((err) => {
-      this.error = err?.status === 0
-        ? 'No se pudo conectar con el servidor. Intenta de nuevo en unos segundos.'
-        : 'No se pudieron cargar los cursos.';
-      return of([]);
-    })).subscribe((courses) => {
-      this.courses = courses as Course[];
-      this.loading = false;
-    });
+    this.coursesService
+      .list()
+      .pipe(
+        timeout(8000),
+        catchError((err) => {
+          this.error = err?.status === 0
+            ? 'No se pudo conectar con el servidor. Intenta de nuevo en unos segundos.'
+            : 'No se pudieron cargar los cursos.';
+          return of([] as Course[]);
+        }),
+        finalize(() => {
+          this.loading = false;
+        })
+      )
+      .subscribe((courses) => {
+        this.courses = courses;
+      });
 
     if (this.auth.isLoggedIn()) {
       this.enrollmentsService.list().subscribe({

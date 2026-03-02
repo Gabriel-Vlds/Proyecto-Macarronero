@@ -5,7 +5,9 @@ import { map } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { Course, Lesson } from '../models/course.model';
 
-type CoursesListResponse = Course[] | { data?: Course[]; courses?: Course[]; items?: Course[] };
+type CoursesListResponse =
+  | Course[]
+  | { data?: Course[]; courses?: Course[]; items?: Course[]; rows?: Course[]; result?: Course[] };
 
 @Injectable({ providedIn: 'root' })
 export class CoursesService {
@@ -52,6 +54,14 @@ export class CoursesService {
 
     if (Array.isArray(response?.items)) {
       return response.items;
+    }
+
+    if (Array.isArray(response?.rows)) {
+      return response.rows;
+    }
+
+    if (Array.isArray(response?.result)) {
+      return response.result;
     }
 
     throw new Error('Unexpected courses response shape');
