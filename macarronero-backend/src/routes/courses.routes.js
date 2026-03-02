@@ -7,9 +7,46 @@ const router = express.Router();
 
 const COURSE_FIELDS = 'id, title, description, price, tier, level, cover_url, created_at, updated_at';
 
+const DEMO_COURSE = {
+  title: 'Curso Demo Macarronero',
+  description: 'Curso de prueba para validar compra, acceso y experiencia protegida.',
+  price: 19.99,
+  tier: 'basic',
+  level: 'beginner',
+  coverUrl: null
+};
+
 // Lista todos los cursos (publico, sin contenido protegido)
 router.get('/', async (req, res) => {
-  const [rows] = await pool.query(`SELECT ${COURSE_FIELDS} FROM courses`);
+  let [rows] = await pool.query(`SELECT ${COURSE_FIELDS} FROM courses`);
+
+  if (rows.length === 0) {
+    const [insertResult] = await pool.query(
+      'INSERT INTO courses (title, description, price, tier, level, cover_url) VALUES (?, ?, ?, ?, ?, ?)',
+      [
+        DEMO_COURSE.title,
+        DEMO_COURSE.description,
+        DEMO_COURSE.price,
+        DEMO_COURSE.tier,
+        DEMO_COURSE.level,
+        DEMO_COURSE.coverUrl
+      ]
+    );
+
+    await pool.query(
+      'INSERT INTO lessons (course_id, title, content, order_index, duration_min) VALUES (?, ?, ?, ?, ?)',
+      [
+        insertResult.insertId,
+        'Lección de prueba: Bienvenida',
+        'Esta lección existe para validar el flujo de compra y visualización protegida.',
+        1,
+        8
+      ]
+    );
+
+    [rows] = await pool.query(`SELECT ${COURSE_FIELDS} FROM courses WHERE id = ?`, [insertResult.insertId]);
+  }
+
   return res.json(rows);
 });
 

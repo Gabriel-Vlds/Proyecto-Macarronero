@@ -2,7 +2,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { forkJoin, of, Subscription as RxSub } from 'rxjs';
+import { of, Subscription as RxSub, timeout } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { AuthService } from '../../core/auth/auth.service';
 import { EnrollmentsService } from '../../core/services/enrollments.service';
@@ -20,7 +20,8 @@ import { Purchase } from '../../core/models/purchase.model';
 export class AccountComponent implements OnInit, OnDestroy {
   enrollments: Enrollment[] = [];
   purchases: Purchase[] = [];
-  loading = true;
+  loadingEnrollments = true;
+  loadingPurchases = true;
   enrollmentsError = '';
   purchasesError = '';
   checkoutMessage = '';
@@ -44,21 +45,32 @@ export class AccountComponent implements OnInit, OnDestroy {
 
     const user = this.auth.user();
     if (!user) {
-      this.loading = false;
+      this.loadingEnrollments = false;
+      this.loadingPurchases = false;
       this.router.navigateByUrl('/login');
       return;
     }
 
-    const s = forkJoin({
-      enrollments: this.enrollmentsService.list().pipe(
+    const enrollmentsSub = this.enrollmentsService
+      .list()
+      .pipe(
+        timeout(8000),
         catchError((err) => {
           this.enrollmentsError = err?.status === 0
             ? 'No se pudo conectar para cargar tus cursos.'
             : 'No se pudieron cargar tus cursos.';
           return of([] as Enrollment[]);
         })
-      ),
-      purchases: this.purchasesService.list().pipe(
+      )
+      .subscribe((enrollments) => {
+        this.enrollments = enrollments;
+        this.loadingEnrollments = false;
+      });
+
+    const purchasesSub = this.purchasesService
+      .list()
+      .pipe(
+        timeout(8000),
         catchError((err) => {
           this.purchasesError = err?.status === 0
             ? 'No se pudo conectar para cargar tus kits.'
@@ -66,18 +78,12 @@ export class AccountComponent implements OnInit, OnDestroy {
           return of([] as Purchase[]);
         })
       )
-    }).subscribe({
-      next: ({ enrollments, purchases }) => {
-        this.enrollments = enrollments;
+      .subscribe((purchases) => {
         this.purchases = purchases;
-        this.loading = false;
-      },
-      error: () => {
-        this.loading = false;
-      }
-    });
+        this.loadingPurchases = false;
+      });
 
-    this.subs.push(s);
+    this.subs.push(enrollmentsSub, purchasesSub);
   }
 
   ngOnDestroy() {

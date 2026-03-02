@@ -15,7 +15,7 @@
   <div class="account__grid">
     <div class="panel">
       <h2>Mis cursos</h2>
-      @if (loading) {
+      @if (loadingEnrollments) {
         <p>Cargando...</p>
       } @else if (enrollmentsError) {
         <p class="note">{{ enrollmentsError }}</p>
@@ -39,7 +39,7 @@
 
     <div class="panel">
       <h2>Mis kits</h2>
-      @if (loading) {
+      @if (loadingPurchases) {
         <p>Cargando...</p>
       } @else if (purchasesError) {
         <p class="note">{{ purchasesError }}</p>
