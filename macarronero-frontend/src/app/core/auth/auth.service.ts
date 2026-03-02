@@ -2,7 +2,7 @@
 import { Injectable, computed, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { tap } from 'rxjs';
-import { API_BASE_URL } from '../api.config';
+import { environment } from 'src/environments/environment';
 import { User } from '../models/user.model';
 
 interface AuthResponse {
@@ -21,13 +21,13 @@ export class AuthService {
 
   login(email: string, password: string) {
     return this.http
-      .post<AuthResponse>(`${API_BASE_URL}/auth/login`, { email, password })
+      .post<AuthResponse>(`${environment.apiBaseUrl}/auth/login`, { email, password })
       .pipe(tap((response) => this.setSession(response)));
   }
 
   register(name: string, email: string, password: string) {
     return this.http
-      .post<AuthResponse>(`${API_BASE_URL}/auth/register`, { name, email, password })
+      .post<AuthResponse>(`${environment.apiBaseUrl}/auth/register`, { name, email, password })
       .pipe(tap((response) => this.setSession(response)));
   }
 
