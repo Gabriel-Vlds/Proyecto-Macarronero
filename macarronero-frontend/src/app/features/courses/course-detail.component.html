@@ -28,7 +28,9 @@
       }
       <div class="cd__lock-actions">
         @if (auth.isLoggedIn()) {
-          <a class="btn btn--primary" routerLink="/courses">Comprar este curso</a>
+          <button class="btn btn--primary" (click)="buyNow()" [disabled]="buying">
+            {{ buying ? 'Procesando...' : 'Comprar este curso' }}
+          </button>
         } @else {
           <a class="btn btn--primary" routerLink="/login">Inicia sesion para comprar</a>
           <a class="btn btn--ghost" routerLink="/register">Crear cuenta</a>

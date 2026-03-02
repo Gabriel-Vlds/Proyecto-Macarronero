@@ -11,6 +11,10 @@
     <p class="note">{{ error }}</p>
   }
 
+  @if (checkoutMessage) {
+    <p class="note">{{ checkoutMessage }}</p>
+  }
+
   <div class="grid">
     @if (loading) {
       <div class="skeleton"></div>

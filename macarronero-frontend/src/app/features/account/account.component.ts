@@ -1,7 +1,7 @@
 // Vista de cuenta: cursos comprados, kits comprados y cierre de sesion.
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { forkJoin, of, Subscription as RxSub } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { AuthService } from '../../core/auth/auth.service';
@@ -23,16 +23,25 @@ export class AccountComponent implements OnInit, OnDestroy {
   loading = true;
   enrollmentsError = '';
   purchasesError = '';
+  checkoutMessage = '';
   private subs: RxSub[] = [];
 
   constructor(
     public readonly auth: AuthService,
     private readonly enrollmentsService: EnrollmentsService,
     private readonly purchasesService: PurchasesService,
+    private readonly route: ActivatedRoute,
     private readonly router: Router
   ) {}
 
   ngOnInit() {
+    const checkout = this.route.snapshot.queryParamMap.get('checkout');
+    if (checkout === 'success') {
+      this.checkoutMessage = 'Pago confirmado. Tu compra se verá reflejada en breve.';
+    } else if (checkout === 'cancel') {
+      this.checkoutMessage = 'Pago cancelado.';
+    }
+
     const user = this.auth.user();
     if (!user) {
       this.loading = false;

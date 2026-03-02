@@ -2,7 +2,9 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { catchError, of } from 'rxjs';
 import { CoursesService } from '../../core/services/courses.service';
+import { PaymentsService } from '../../core/services/payments.service';
 import { AuthService } from '../../core/auth/auth.service';
 import { Course, Lesson } from '../../core/models/course.model';
 
@@ -21,12 +23,14 @@ export class CourseDetailComponent implements OnInit, OnDestroy {
   notEnrolled = false;
   screenBlocked = false;
   expandedId: number | null = null;
+  buying = false;
   private readonly cleanup: Array<() => void> = [];
 
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly coursesService: CoursesService,
+    private readonly paymentsService: PaymentsService,
     public readonly auth: AuthService
   ) {}
 
@@ -75,8 +79,36 @@ export class CourseDetailComponent implements OnInit, OnDestroy {
   }
 
   buyNow() {
-    if (!this.auth.isLoggedIn()) { this.router.navigate(['/login']); return; }
-    this.router.navigate(['/courses']);
+    if (!this.auth.isLoggedIn()) {
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    if (!this.course) {
+      return;
+    }
+
+    this.error = '';
+    this.buying = true;
+
+    this.paymentsService.checkout('course', this.course.id).pipe(
+      catchError((err) => {
+        if (err?.status === 409) {
+          this.notEnrolled = false;
+          this.loading = true;
+          this.loadLessons(this.course!.id);
+        } else {
+          this.error = err?.error?.message || 'No se pudo iniciar el pago.';
+        }
+
+        return of(null);
+      })
+    ).subscribe((res) => {
+      this.buying = false;
+      if (res?.url) {
+        window.location.href = res.url;
+      }
+    });
   }
 
   private attachGuards() {

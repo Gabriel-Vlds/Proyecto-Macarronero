@@ -1,7 +1,7 @@
 // Vista para explorar y comprar cursos individuales.
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, of } from 'rxjs';
 import { CoursesService } from '../../core/services/courses.service';
 import { EnrollmentsService } from '../../core/services/enrollments.service';
@@ -23,16 +23,25 @@ export class CoursesComponent implements OnInit {
   loading = true;
   buyingId: number | null = null;
   error = '';
+  checkoutMessage = '';
 
   constructor(
     private readonly coursesService: CoursesService,
     private readonly enrollmentsService: EnrollmentsService,
     private readonly paymentsService: PaymentsService,
     public readonly auth: AuthService,
+    private readonly route: ActivatedRoute,
     private readonly router: Router
   ) {}
 
   ngOnInit() {
+    const checkout = this.route.snapshot.queryParamMap.get('checkout');
+    if (checkout === 'cancel') {
+      this.checkoutMessage = 'Pago cancelado. Puedes intentarlo nuevamente cuando quieras.';
+    } else if (checkout === 'success') {
+      this.checkoutMessage = 'Pago confirmado. Estamos actualizando tu acceso.';
+    }
+
     this.coursesService.list().pipe(catchError((err) => {
       this.error = err?.status === 0
         ? 'No se pudo conectar con el servidor. Intenta de nuevo en unos segundos.'

@@ -8,6 +8,10 @@
     <button class="btn btn--ghost" (click)="logout()">Cerrar sesion</button>
   </header>
 
+  @if (checkoutMessage) {
+    <p class="note">{{ checkoutMessage }}</p>
+  }
+
   <div class="account__grid">
     <div class="panel">
       <h2>Mis cursos</h2>
