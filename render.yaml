@@ -35,8 +35,9 @@ services:
       - key: STRIPE_CANCEL_URL
         sync: false
 
-  - type: static
+  - type: web
     name: macarronero-web
+    env: static
     rootDir: macarronero-frontend
     buildCommand: npm install && npm run build
     staticPublishPath: dist/macarronero-frontend/browser
