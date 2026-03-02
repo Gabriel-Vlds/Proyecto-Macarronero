@@ -1,7 +1,7 @@
 // Servicio de autenticacion: login, registro y manejo de sesion local.
 import { Injectable, computed, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { tap } from 'rxjs';
+import { map, tap } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { User } from '../models/user.model';
 
@@ -9,6 +9,8 @@ interface AuthResponse {
   token: string;
   user: User;
 }
+
+type AuthApiResponse = AuthResponse | { data?: AuthResponse; auth?: AuthResponse; result?: AuthResponse };
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -21,13 +23,15 @@ export class AuthService {
 
   login(email: string, password: string) {
     return this.http
-      .post<AuthResponse>(`${environment.apiBaseUrl}/auth/login`, { email, password })
+      .post<AuthApiResponse>(`${environment.apiBaseUrl}/auth/login`, { email, password })
+      .pipe(map((response) => this.extractAuthResponse(response)))
       .pipe(tap((response) => this.setSession(response)));
   }
 
   register(name: string, email: string, password: string) {
     return this.http
-      .post<AuthResponse>(`${environment.apiBaseUrl}/auth/register`, { name, email, password })
+      .post<AuthApiResponse>(`${environment.apiBaseUrl}/auth/register`, { name, email, password })
+      .pipe(map((response) => this.extractAuthResponse(response)))
       .pipe(tap((response) => this.setSession(response)));
   }
 
@@ -53,6 +57,33 @@ export class AuthService {
     localStorage.setItem(this.tokenKey, response.token);
     localStorage.setItem(this.userKey, JSON.stringify(response.user));
     this.userSignal.set(response.user);
+  }
+
+  private extractAuthResponse(response: AuthApiResponse): AuthResponse {
+    const candidate = this.isAuthResponse(response)
+      ? response
+      : this.isAuthResponse(response?.data)
+        ? response.data
+        : this.isAuthResponse(response?.auth)
+          ? response.auth
+          : this.isAuthResponse(response?.result)
+            ? response.result
+            : null;
+
+    if (!candidate) {
+      throw new Error('Unexpected auth response shape');
+    }
+
+    return candidate;
+  }
+
+  private isAuthResponse(value: unknown): value is AuthResponse {
+    if (!value || typeof value !== 'object') {
+      return false;
+    }
+
+    const payload = value as Partial<AuthResponse>;
+    return typeof payload.token === 'string' && !!payload.user && typeof payload.user === 'object';
   }
 
   private loadUser() {
