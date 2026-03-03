@@ -7,6 +7,14 @@
   margin-bottom: 1.5rem;
 }
 
+.admin-section {
+  margin-top: 2rem;
+}
+
+.admin-section__title {
+  margin-bottom: 1rem;
+}
+
 .dashboard__grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -62,33 +70,6 @@ textarea {
 .note {
   color: var(--color-accent);
   margin-bottom: 1rem;
-}
-
-.list {
-  margin-top: 2.5rem;
-}
-
-.list__grid {
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-}
-
-.card {
-  background: var(--color-surface);
-  border-radius: 18px;
-  padding: 1.25rem;
-  box-shadow: var(--shadow-soft);
-  display: grid;
-  gap: 0.75rem;
-  min-width: 0;
-}
-
-.card input,
-.card textarea,
-.card select {
-  width: 100%;
-  min-width: 0;
 }
 
 .row {

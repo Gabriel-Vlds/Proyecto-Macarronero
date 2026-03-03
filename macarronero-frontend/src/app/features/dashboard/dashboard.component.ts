@@ -23,6 +23,8 @@ export class DashboardComponent implements OnInit {
   message = '';
   selectedCourseId = 0;
   selectedCourse: Course | null = null;
+  selectedKitId = 0;
+  selectedKit: Kit | null = null;
 
   courseForm: Partial<Course> = {
     title: '',
@@ -67,7 +69,12 @@ export class DashboardComponent implements OnInit {
 
   refresh() {
     this.coursesService.list().subscribe((items) => (this.courses = items));
-    this.kitsService.list().subscribe((items) => (this.kits = items));
+    this.kitsService.list().subscribe((items) => {
+      this.kits = items;
+      if (this.selectedKitId) {
+        this.selectKitForEdit();
+      }
+    });
     this.usersService.list().subscribe((items) => (this.users = items));
   }
 
@@ -196,6 +203,37 @@ export class DashboardComponent implements OnInit {
         this.message = 'No se pudo crear el kit.';
       }
     });
+  }
+
+  selectKitForEdit() {
+    const found = this.kits.find((item) => item.id === Number(this.selectedKitId));
+    this.selectedKit = found
+      ? {
+          ...found,
+          price: Number(found.price),
+          stock: Number(found.stock)
+        }
+      : null;
+  }
+
+  saveSelectedKit() {
+    if (!this.selectedKit) {
+      this.message = 'Selecciona un kit para guardar cambios.';
+      return;
+    }
+
+    this.updateKit(this.selectedKit);
+  }
+
+  deleteSelectedKit() {
+    if (!this.selectedKit) {
+      this.message = 'Selecciona un kit para eliminar.';
+      return;
+    }
+
+    this.deleteKit(this.selectedKit.id);
+    this.selectedKit = null;
+    this.selectedKitId = 0;
   }
 
   updateKit(kit: Kit) {

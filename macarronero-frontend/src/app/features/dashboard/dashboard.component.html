@@ -11,201 +11,234 @@
     <p class="note">{{ message }}</p>
   }
 
-  <div class="dashboard__grid">
-    <div class="panel">
-      <h2>Nuevo curso</h2>
-      <form (ngSubmit)="createCourse()">
-        <label>
-          Titulo
-          <input [(ngModel)]="courseForm.title" name="title" required />
-        </label>
-        <label>
-          Descripcion
-          <textarea [(ngModel)]="courseForm.description" name="description"></textarea>
-        </label>
-        <label>
-          Precio
-          <input type="number" [(ngModel)]="courseForm.price" name="price" required />
-        </label>
-        <label>
-          Nivel
-          <select [(ngModel)]="courseForm.level" name="level">
-            <option value="beginner">Principiante</option>
-            <option value="intermediate">Intermedio</option>
-            <option value="advanced">Avanzado</option>
-          </select>
-        </label>
-        <label>
-          Tipo
-          <select [(ngModel)]="courseForm.tier" name="tier">
-            <option value="basic">Basico</option>
-            <option value="premium">Premium</option>
-          </select>
-        </label>
-        <button class="btn btn--primary" type="submit">Crear</button>
-      </form>
-    </div>
+  <section class="admin-section">
+    <h2 class="admin-section__title">Cursos</h2>
+    <div class="dashboard__grid">
+      <div class="panel">
+        <h3>Nuevo curso</h3>
+        <form (ngSubmit)="createCourse()">
+          <label>
+            Titulo
+            <input [(ngModel)]="courseForm.title" name="title" required />
+          </label>
+          <label>
+            Descripcion
+            <textarea [(ngModel)]="courseForm.description" name="description"></textarea>
+          </label>
+          <label>
+            Precio
+            <input type="number" [(ngModel)]="courseForm.price" name="price" required />
+          </label>
+          <label>
+            Nivel
+            <select [(ngModel)]="courseForm.level" name="level">
+              <option value="beginner">Principiante</option>
+              <option value="intermediate">Intermedio</option>
+              <option value="advanced">Avanzado</option>
+            </select>
+          </label>
+          <label>
+            Tipo
+            <select [(ngModel)]="courseForm.tier" name="tier">
+              <option value="basic">Basico</option>
+              <option value="premium">Premium</option>
+            </select>
+          </label>
+          <button class="btn btn--primary" type="submit">Crear</button>
+        </form>
+      </div>
 
-    <div class="panel">
-      <h2>Nuevo kit</h2>
-      <form (ngSubmit)="createKit()">
+      <div class="panel">
+        <h3>Editar curso</h3>
         <label>
-          Nombre
-          <input [(ngModel)]="kitForm.name" name="name" required />
-        </label>
-        <label>
-          Descripcion
-          <textarea [(ngModel)]="kitForm.description" name="kitDescription"></textarea>
-        </label>
-        <label>
-          Precio
-          <input type="number" [(ngModel)]="kitForm.price" name="kitPrice" required />
-        </label>
-        <label>
-          Stock
-          <input type="number" [(ngModel)]="kitForm.stock" name="stock" required />
-        </label>
-        <button class="btn btn--primary" type="submit">Crear</button>
-      </form>
-    </div>
-
-    <div class="panel">
-      <h2>Nueva leccion</h2>
-      @if (lessonForm.courseId) {
-        <p class="note">Curso seleccionado: ID {{ lessonForm.courseId }}</p>
-      }
-      <form (ngSubmit)="createLesson()">
-        <label>
-          Curso
-          <select [(ngModel)]="lessonForm.courseId" name="lessonCourseId" required>
+          Selecciona curso
+          <select [(ngModel)]="selectedCourseId" name="selectedCourseId" (ngModelChange)="selectCourseForEdit()">
             <option [ngValue]="0">Selecciona un curso</option>
             @for (course of courses; track course.id) {
               <option [ngValue]="course.id">{{ course.title }} (ID {{ course.id }})</option>
             }
           </select>
         </label>
-        <label>
-          Titulo
-          <input [(ngModel)]="lessonForm.title" name="lessonTitle" required />
-        </label>
-        <label>
-          Contenido
-          <textarea [(ngModel)]="lessonForm.content" name="lessonContent"></textarea>
-        </label>
-        <label>
-          URL del video
-          <input [(ngModel)]="lessonForm.videoUrl" name="lessonVideoUrl" placeholder="https://..." />
-        </label>
-        <div class="row">
-          <label>
-            Orden
-            <input type="number" [(ngModel)]="lessonForm.orderIndex" name="lessonOrderIndex" min="1" />
-          </label>
-          <label>
-            Duracion (min)
-            <input type="number" [(ngModel)]="lessonForm.durationMin" name="lessonDurationMin" min="1" />
-          </label>
-        </div>
-        <button class="btn btn--primary" type="submit">Crear leccion</button>
-      </form>
-    </div>
 
-    <div class="panel">
-      <h2>Editar curso</h2>
-      <label>
-        Selecciona curso
-        <select [(ngModel)]="selectedCourseId" name="selectedCourseId" (ngModelChange)="selectCourseForEdit()">
-          <option [ngValue]="0">Selecciona un curso</option>
-          @for (course of courses; track course.id) {
-            <option [ngValue]="course.id">{{ course.title }} (ID {{ course.id }})</option>
-          }
-        </select>
-      </label>
+        @if (selectedCourse) {
+          <div class="panel__editor">
+            <label>
+              Titulo
+              <input [(ngModel)]="selectedCourse.title" name="selectedCourseTitle" />
+            </label>
+            <label>
+              Descripcion
+              <textarea [(ngModel)]="selectedCourse.description" name="selectedCourseDescription"></textarea>
+            </label>
+            <div class="row row--fields">
+              <label>
+                Precio
+                <input type="number" [(ngModel)]="selectedCourse.price" name="selectedCoursePrice" />
+              </label>
+              <label>
+                Nivel
+                <select [(ngModel)]="selectedCourse.level" name="selectedCourseLevel">
+                  <option value="beginner">Principiante</option>
+                  <option value="intermediate">Intermedio</option>
+                  <option value="advanced">Avanzado</option>
+                </select>
+              </label>
+            </div>
+            <label>
+              Tipo
+              <select [(ngModel)]="selectedCourse.tier" name="selectedCourseTier">
+                <option value="basic">Basico</option>
+                <option value="premium">Premium</option>
+              </select>
+            </label>
+            <div class="row row--actions">
+              <button class="btn btn--primary" type="button" (click)="assignSelectedCourseToLesson()">Crear leccion</button>
+              <button class="btn btn--ghost" type="button" (click)="saveSelectedCourse()">Guardar</button>
+              <button class="btn btn--danger" type="button" (click)="deleteSelectedCourse()">Eliminar</button>
+            </div>
+          </div>
+        }
+      </div>
 
-      @if (selectedCourse) {
-        <div class="panel__editor">
+      <div class="panel">
+        <h3>Nueva leccion</h3>
+        @if (lessonForm.courseId) {
+          <p class="note">Curso seleccionado: ID {{ lessonForm.courseId }}</p>
+        }
+        <form (ngSubmit)="createLesson()">
+          <label>
+            Curso
+            <select [(ngModel)]="lessonForm.courseId" name="lessonCourseId" required>
+              <option [ngValue]="0">Selecciona un curso</option>
+              @for (course of courses; track course.id) {
+                <option [ngValue]="course.id">{{ course.title }} (ID {{ course.id }})</option>
+              }
+            </select>
+          </label>
           <label>
             Titulo
-            <input [(ngModel)]="selectedCourse.title" name="selectedCourseTitle" />
+            <input [(ngModel)]="lessonForm.title" name="lessonTitle" required />
+          </label>
+          <label>
+            Contenido
+            <textarea [(ngModel)]="lessonForm.content" name="lessonContent"></textarea>
+          </label>
+          <label>
+            URL del video
+            <input [(ngModel)]="lessonForm.videoUrl" name="lessonVideoUrl" placeholder="https://..." />
+          </label>
+          <div class="row">
+            <label>
+              Orden
+              <input type="number" [(ngModel)]="lessonForm.orderIndex" name="lessonOrderIndex" min="1" />
+            </label>
+            <label>
+              Duracion (min)
+              <input type="number" [(ngModel)]="lessonForm.durationMin" name="lessonDurationMin" min="1" />
+            </label>
+          </div>
+          <button class="btn btn--primary" type="submit">Crear leccion</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <section class="admin-section">
+    <h2 class="admin-section__title">Kits</h2>
+    <div class="dashboard__grid">
+      <div class="panel">
+        <h3>Nuevo kit</h3>
+        <form (ngSubmit)="createKit()">
+          <label>
+            Nombre
+            <input [(ngModel)]="kitForm.name" name="name" required />
           </label>
           <label>
             Descripcion
-            <textarea [(ngModel)]="selectedCourse.description" name="selectedCourseDescription"></textarea>
+            <textarea [(ngModel)]="kitForm.description" name="kitDescription"></textarea>
           </label>
-          <div class="row row--fields">
-            <label>
-              Precio
-              <input type="number" [(ngModel)]="selectedCourse.price" name="selectedCoursePrice" />
-            </label>
-            <label>
-              Nivel
-              <select [(ngModel)]="selectedCourse.level" name="selectedCourseLevel">
-                <option value="beginner">Principiante</option>
-                <option value="intermediate">Intermedio</option>
-                <option value="advanced">Avanzado</option>
-              </select>
-            </label>
-          </div>
           <label>
-            Tipo
-            <select [(ngModel)]="selectedCourse.tier" name="selectedCourseTier">
-              <option value="basic">Basico</option>
-              <option value="premium">Premium</option>
-            </select>
+            Precio
+            <input type="number" [(ngModel)]="kitForm.price" name="kitPrice" required />
           </label>
-          <div class="row row--actions">
-            <button class="btn btn--primary" type="button" (click)="assignSelectedCourseToLesson()">Crear leccion</button>
-            <button class="btn btn--ghost" type="button" (click)="saveSelectedCourse()">Guardar</button>
-            <button class="btn btn--danger" type="button" (click)="deleteSelectedCourse()">Eliminar</button>
-          </div>
-        </div>
-      }
-    </div>
+          <label>
+            Stock
+            <input type="number" [(ngModel)]="kitForm.stock" name="stock" required />
+          </label>
+          <button class="btn btn--primary" type="submit">Crear</button>
+        </form>
+      </div>
 
-    <div class="panel">
-      <h2>Actualizar cliente</h2>
-      <form (ngSubmit)="updateUser()">
+      <div class="panel">
+        <h3>Editar kit</h3>
         <label>
-          ID Cliente
-          <input type="number" [(ngModel)]="userUpdate.id" name="userId" required />
-        </label>
-        <label>
-          Nombre
-          <input [(ngModel)]="userUpdate.name" name="userName" />
-        </label>
-        <label>
-          Email
-          <input type="email" [(ngModel)]="userUpdate.email" name="userEmail" />
-        </label>
-        <label>
-          Rol
-          <select [(ngModel)]="userUpdate.role" name="userRole">
-            <option value="customer">Cliente</option>
-            <option value="admin">Admin</option>
+          Selecciona kit
+          <select [(ngModel)]="selectedKitId" name="selectedKitId" (ngModelChange)="selectKitForEdit()">
+            <option [ngValue]="0">Selecciona un kit</option>
+            @for (kit of kits; track kit.id) {
+              <option [ngValue]="kit.id">{{ kit.name }} (ID {{ kit.id }})</option>
+            }
           </select>
         </label>
-        <button class="btn btn--primary" type="submit">Actualizar</button>
-      </form>
-    </div>
-  </div>
 
-  <section class="list">
-    <h2>Kits existentes</h2>
-    <div class="list__grid">
-      @for (kit of kits; track kit.id) {
-        <article class="card">
-          <input [(ngModel)]="kit.name" name="kitName{{ kit.id }}" />
-          <textarea [(ngModel)]="kit.description" name="kitDesc{{ kit.id }}"></textarea>
-          <div class="row row--fields">
-            <input type="number" [(ngModel)]="kit.price" name="kitPrice{{ kit.id }}" />
-            <input type="number" [(ngModel)]="kit.stock" name="kitStock{{ kit.id }}" />
+        @if (selectedKit) {
+          <div class="panel__editor">
+            <label>
+              Nombre
+              <input [(ngModel)]="selectedKit.name" name="selectedKitName" />
+            </label>
+            <label>
+              Descripcion
+              <textarea [(ngModel)]="selectedKit.description" name="selectedKitDescription"></textarea>
+            </label>
+            <div class="row row--fields">
+              <label>
+                Precio
+                <input type="number" [(ngModel)]="selectedKit.price" name="selectedKitPrice" />
+              </label>
+              <label>
+                Stock
+                <input type="number" [(ngModel)]="selectedKit.stock" name="selectedKitStock" />
+              </label>
+            </div>
+            <div class="row row--actions">
+              <button class="btn btn--ghost" type="button" (click)="saveSelectedKit()">Guardar</button>
+              <button class="btn btn--danger" type="button" (click)="deleteSelectedKit()">Eliminar</button>
+            </div>
           </div>
-          <div class="row row--actions">
-            <button class="btn btn--ghost" (click)="updateKit(kit)">Guardar</button>
-            <button class="btn btn--danger" (click)="deleteKit(kit.id)">Eliminar</button>
-          </div>
-        </article>
-      }
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="admin-section">
+    <h2 class="admin-section__title">Cliente</h2>
+    <div class="dashboard__grid">
+      <div class="panel">
+        <h3>Actualizar cliente</h3>
+        <form (ngSubmit)="updateUser()">
+          <label>
+            ID Cliente
+            <input type="number" [(ngModel)]="userUpdate.id" name="userId" required />
+          </label>
+          <label>
+            Nombre
+            <input [(ngModel)]="userUpdate.name" name="userName" />
+          </label>
+          <label>
+            Email
+            <input type="email" [(ngModel)]="userUpdate.email" name="userEmail" />
+          </label>
+          <label>
+            Rol
+            <select [(ngModel)]="userUpdate.role" name="userRole">
+              <option value="customer">Cliente</option>
+              <option value="admin">Admin</option>
+            </select>
+          </label>
+          <button class="btn btn--primary" type="submit">Actualizar</button>
+        </form>
+      </div>
     </div>
   </section>
 </section>
