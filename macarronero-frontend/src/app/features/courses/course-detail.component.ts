@@ -1,5 +1,5 @@
 ﻿// Detalle de curso: lecciones protegidas con bloqueo anti-grabacion.
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, of } from 'rxjs';
@@ -12,6 +12,7 @@ import { Course, Lesson } from '../../core/models/course.model';
   selector: 'app-course-detail',
   standalone: true,
   imports: [CommonModule, RouterLink],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './course-detail.component.html',
   styleUrl: './course-detail.component.css'
 })
@@ -76,6 +77,12 @@ export class CourseDetailComponent implements OnInit, OnDestroy {
   getLevelLabel(level: string) {
     const map: Record<string, string> = { beginner: 'Principiante', intermediate: 'Intermedio', advanced: 'Avanzado' };
     return map[level] ?? level;
+  }
+
+  getMuxPlaybackId(videoUrl?: string | null): string | null {
+    if (!videoUrl) return null;
+    const match = videoUrl.match(/stream\.mux\.com\/([^.?/]+)/i);
+    return match?.[1] ?? null;
   }
 
   buyNow() {

@@ -144,6 +144,14 @@
   background: rgba(255,255,255,0.6);
 }
 
+.lesson__body mux-player {
+  margin-top: 0.75rem;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
 /* ── Anti-grabacion: sin seleccion de texto ────── */
 .no-select {
   -webkit-user-select: none;

@@ -24,6 +24,10 @@ db: {
     webhookSecret: process.env.STRIPE_WEBHOOK_SECRET || '',
     successUrl: process.env.STRIPE_SUCCESS_URL || `${frontendUrl}/courses?checkout=success`,
     cancelUrl: process.env.STRIPE_CANCEL_URL || `${frontendUrl}/courses?checkout=cancel`
+  },
+  mux: {
+    tokenId: process.env.MUX_TOKEN_ID || '',
+    tokenSecret: process.env.MUX_TOKEN_SECRET || ''
   }
 };
 

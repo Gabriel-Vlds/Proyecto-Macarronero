@@ -1,6 +1,7 @@
 // Endpoints para cursos disponibles en la plataforma.
 const express = require('express');
 const { pool } = require('../db');
+const { config } = require('../config');
 const { authenticate, requireRole } = require('../middleware/auth');
 
 const router = express.Router();
@@ -15,6 +16,42 @@ const DEMO_COURSE = {
   level: 'beginner',
   coverUrl: null
 };
+
+function isMuxPlaybackUrl(url) {
+  return typeof url === 'string' && /stream\.mux\.com\/.+\.(m3u8|mp4)/i.test(url);
+}
+
+async function createMuxPlaybackUrlFromSource(sourceUrl) {
+  if (!config.mux.tokenId || !config.mux.tokenSecret) {
+    return sourceUrl;
+  }
+
+  const auth = Buffer.from(`${config.mux.tokenId}:${config.mux.tokenSecret}`).toString('base64');
+  const response = await fetch('https://api.mux.com/video/v1/assets', {
+    method: 'POST',
+    headers: {
+      Authorization: `Basic ${auth}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      input: [{ url: sourceUrl }],
+      playback_policy: ['public']
+    })
+  });
+
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(`Mux asset creation failed (${response.status}): ${body}`);
+  }
+
+  const payload = await response.json();
+  const playbackId = payload?.data?.playback_ids?.[0]?.id;
+  if (!playbackId) {
+    throw new Error('Mux response without playback id');
+  }
+
+  return `https://stream.mux.com/${playbackId}.m3u8`;
+}
 
 // Lista todos los cursos (publico, sin contenido protegido)
 router.get('/', async (req, res) => {
@@ -109,6 +146,16 @@ router.post('/:id/lessons', authenticate, requireRole('admin'), async (req, res)
 
   const order = Number(orderIndex);
   const duration = durationMin == null || durationMin === '' ? null : Number(durationMin);
+  let finalVideoUrl = videoUrl || null;
+
+  if (finalVideoUrl && !isMuxPlaybackUrl(finalVideoUrl) && config.mux.tokenId && config.mux.tokenSecret) {
+    try {
+      finalVideoUrl = await createMuxPlaybackUrlFromSource(finalVideoUrl);
+    } catch (error) {
+      console.error('Mux processing error:', error);
+      return res.status(500).json({ message: 'No se pudo procesar el video en Mux.' });
+    }
+  }
 
   const [result] = await pool.query(
     `INSERT INTO lessons (course_id, title, content, video_url, order_index, duration_min)
@@ -117,7 +164,7 @@ router.post('/:id/lessons', authenticate, requireRole('admin'), async (req, res)
       courseId,
       title,
       content || '',
-      videoUrl || null,
+      finalVideoUrl,
       Number.isFinite(order) && order > 0 ? order : 1,
       Number.isFinite(duration) && duration > 0 ? duration : null
     ]

@@ -28,6 +28,10 @@ services:
         sync: false
       - key: FRONTEND_URL
         sync: false
+      - key: MUX_TOKEN_ID
+        sync: false
+      - key: MUX_TOKEN_SECRET
+        sync: false
 
   - type: web
     name: macarronero-web
