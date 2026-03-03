@@ -71,6 +71,9 @@
 
     <div class="panel">
       <h2>Nueva leccion</h2>
+      @if (lessonForm.courseId) {
+        <p class="note">Curso seleccionado: ID {{ lessonForm.courseId }}</p>
+      }
       <form (ngSubmit)="createLesson()">
         <label>
           ID del curso
@@ -149,6 +152,7 @@
             <option value="premium">Premium</option>
           </select>
           <div class="row">
+            <button class="btn btn--primary" (click)="prepareLesson(course)">Crear leccion</button>
             <button class="btn btn--ghost" (click)="updateCourse(course)">Guardar</button>
             <button class="btn btn--danger" (click)="deleteCourse(course.id)">Eliminar</button>
           </div>

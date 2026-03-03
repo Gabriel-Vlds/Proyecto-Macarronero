@@ -118,6 +118,12 @@ export class DashboardComponent implements OnInit {
     });
   }
 
+  prepareLesson(course: Course) {
+    this.lessonForm.courseId = course.id;
+    this.message = `Curso seleccionado para lecciones: ${course.title} (ID ${course.id}).`;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
   updateCourse(course: Course) {
     this.coursesService.update(course.id, course).subscribe({
       next: () => {
