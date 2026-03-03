@@ -19,6 +19,7 @@
         <p>Cargando...</p>
       } @else if (enrollmentsError) {
         <p class="note">{{ enrollmentsError }}</p>
+        <button class="btn btn--ghost" (click)="loadAccountData()">Reintentar</button>
         <a class="btn btn--primary" routerLink="/courses">Ver cursos</a>
       } @else if (enrollments.length === 0) {
         <p>No tienes cursos adquiridos.</p>
@@ -43,6 +44,7 @@
         <p>Cargando...</p>
       } @else if (purchasesError) {
         <p class="note">{{ purchasesError }}</p>
+        <button class="btn btn--ghost" (click)="loadAccountData()">Reintentar</button>
         <a class="btn btn--ghost" routerLink="/kits">Ver kits</a>
       } @else if (purchases.length === 0) {
         <p>No tienes kits comprados.</p>

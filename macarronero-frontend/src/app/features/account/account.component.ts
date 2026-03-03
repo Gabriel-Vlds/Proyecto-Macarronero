@@ -2,7 +2,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { of, Subscription as RxSub, timeout } from 'rxjs';
+import { finalize, of, Subscription as RxSub, timeout } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { AuthService } from '../../core/auth/auth.service';
 import { EnrollmentsService } from '../../core/services/enrollments.service';
@@ -51,20 +51,37 @@ export class AccountComponent implements OnInit, OnDestroy {
       return;
     }
 
+    this.loadAccountData();
+  }
+
+  loadAccountData() {
+    this.loadingEnrollments = true;
+    this.loadingPurchases = true;
+    this.enrollmentsError = '';
+    this.purchasesError = '';
+
+    this.subs.forEach((s) => s.unsubscribe());
+    this.subs = [];
+
     const enrollmentsSub = this.enrollmentsService
       .list()
       .pipe(
         timeout(8000),
         catchError((err) => {
-          this.enrollmentsError = err?.status === 0
-            ? 'No se pudo conectar para cargar tus cursos.'
-            : 'No se pudieron cargar tus cursos.';
+          const isTimeout = err?.name === 'TimeoutError';
+          this.enrollmentsError = isTimeout
+            ? 'La carga de tus cursos excedio el tiempo limite. Intenta de nuevo.'
+            : err?.status === 0
+              ? 'No se pudo conectar para cargar tus cursos.'
+              : 'No se pudieron cargar tus cursos.';
           return of([] as Enrollment[]);
+        }),
+        finalize(() => {
+          this.loadingEnrollments = false;
         })
       )
       .subscribe((enrollments) => {
         this.enrollments = enrollments;
-        this.loadingEnrollments = false;
       });
 
     const purchasesSub = this.purchasesService
@@ -72,15 +89,20 @@ export class AccountComponent implements OnInit, OnDestroy {
       .pipe(
         timeout(8000),
         catchError((err) => {
-          this.purchasesError = err?.status === 0
-            ? 'No se pudo conectar para cargar tus kits.'
-            : 'No se pudieron cargar tus kits.';
+          const isTimeout = err?.name === 'TimeoutError';
+          this.purchasesError = isTimeout
+            ? 'La carga de tus kits excedio el tiempo limite. Intenta de nuevo.'
+            : err?.status === 0
+              ? 'No se pudo conectar para cargar tus kits.'
+              : 'No se pudieron cargar tus kits.';
           return of([] as Purchase[]);
+        }),
+        finalize(() => {
+          this.loadingPurchases = false;
         })
       )
       .subscribe((purchases) => {
         this.purchases = purchases;
-        this.loadingPurchases = false;
       });
 
     this.subs.push(enrollmentsSub, purchasesSub);

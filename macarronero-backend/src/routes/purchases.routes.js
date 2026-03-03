@@ -6,23 +6,31 @@ const { authenticate } = require('../middleware/auth');
 const router = express.Router();
 
 router.get('/', authenticate, async (req, res) => {
-  const { userId } = req.query;
-  const isAdmin = req.user.role === 'admin';
-  const targetUserId = userId ? Number(userId) : req.user.id;
+  const startedAt = Date.now();
 
-  if (!isAdmin && targetUserId !== req.user.id) {
-    return res.status(403).json({ message: 'Forbidden' });
+  try {
+    const { userId } = req.query;
+    const isAdmin = req.user.role === 'admin';
+    const targetUserId = userId ? Number(userId) : req.user.id;
+
+    if (!isAdmin && targetUserId !== req.user.id) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+
+    const [rows] = await pool.query(
+      `SELECT p.id, p.user_id, p.kit_id, p.quantity, p.total_price, p.created_at, k.name
+       FROM kit_purchases p
+       JOIN kits k ON k.id = p.kit_id
+       WHERE p.user_id = ?`,
+      [targetUserId]
+    );
+
+    console.info(`[purchases:list] ok user=${targetUserId} count=${rows.length} durationMs=${Date.now() - startedAt}`);
+    return res.json(rows);
+  } catch (error) {
+    console.error(`[purchases:list] error durationMs=${Date.now() - startedAt}`, error);
+    return res.status(500).json({ message: 'Server error loading purchases' });
   }
-
-  const [rows] = await pool.query(
-    `SELECT p.id, p.user_id, p.kit_id, p.quantity, p.total_price, p.created_at, k.name
-     FROM kit_purchases p
-     JOIN kits k ON k.id = p.kit_id
-     WHERE p.user_id = ?`,
-    [targetUserId]
-  );
-
-  return res.json(rows);
 });
 
 router.post('/', authenticate, async (req, res) => {

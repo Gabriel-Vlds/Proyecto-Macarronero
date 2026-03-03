@@ -6,23 +6,31 @@ const { authenticate, requireRole } = require('../middleware/auth');
 const router = express.Router();
 
 router.get('/', authenticate, async (req, res) => {
-  const { userId } = req.query;
-  const isAdmin = req.user.role === 'admin';
-  const targetUserId = userId ? Number(userId) : req.user.id;
+  const startedAt = Date.now();
 
-  if (!isAdmin && targetUserId !== req.user.id) {
-    return res.status(403).json({ message: 'Forbidden' });
+  try {
+    const { userId } = req.query;
+    const isAdmin = req.user.role === 'admin';
+    const targetUserId = userId ? Number(userId) : req.user.id;
+
+    if (!isAdmin && targetUserId !== req.user.id) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+
+    const [rows] = await pool.query(
+      `SELECT e.id, e.user_id, e.course_id, e.created_at, c.title, c.level
+       FROM enrollments e
+       JOIN courses c ON c.id = e.course_id
+       WHERE e.user_id = ?`,
+      [targetUserId]
+    );
+
+    console.info(`[enrollments:list] ok user=${targetUserId} count=${rows.length} durationMs=${Date.now() - startedAt}`);
+    return res.json(rows);
+  } catch (error) {
+    console.error(`[enrollments:list] error durationMs=${Date.now() - startedAt}`, error);
+    return res.status(500).json({ message: 'Server error loading enrollments' });
   }
-
-  const [rows] = await pool.query(
-    `SELECT e.id, e.user_id, e.course_id, e.created_at, c.title, c.level
-     FROM enrollments e
-     JOIN courses c ON c.id = e.course_id
-     WHERE e.user_id = ?`,
-    [targetUserId]
-  );
-
-  return res.json(rows);
 });
 
 router.post('/', authenticate, async (req, res) => {
