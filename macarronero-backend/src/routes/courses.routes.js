@@ -38,6 +38,30 @@ function getMuxAuthHeader() {
   return `Basic ${Buffer.from(`${config.mux.tokenId}:${config.mux.tokenSecret}`).toString('base64')}`;
 }
 
+async function muxApiRequest(path, options = {}) {
+  const authHeader = getMuxAuthHeader();
+  if (!authHeader) {
+    throw new Error('Mux credentials are not configured');
+  }
+
+  const response = await fetch(`https://api.mux.com/video/v1${path}`, {
+    method: options.method || 'GET',
+    headers: {
+      Authorization: authHeader,
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    },
+    body: options.body ? JSON.stringify(options.body) : undefined
+  });
+
+  if (!response.ok) {
+    const bodyText = await response.text();
+    throw new Error(`Mux API error ${response.status}: ${bodyText}`);
+  }
+
+  return response.json();
+}
+
 async function getMuxAssetStatusByPlaybackId(playbackId) {
   const authHeader = getMuxAuthHeader();
   if (!authHeader) {
@@ -267,6 +291,104 @@ router.post('/:id/lessons', authenticate, requireRole('admin'), async (req, res)
   );
 
   return res.status(201).json(rows[0]);
+});
+
+router.post('/:id/lessons/mux-upload', authenticate, requireRole('admin'), async (req, res) => {
+  try {
+    const courseId = Number(req.params.id);
+    if (!courseId) {
+      return res.status(400).json({ message: 'Invalid course id' });
+    }
+
+    const [courseRows] = await pool.query('SELECT id FROM courses WHERE id = ?', [courseId]);
+    if (courseRows.length === 0) {
+      return res.status(404).json({ message: 'Course not found' });
+    }
+
+    if (!config.mux.tokenId || !config.mux.tokenSecret) {
+      return res.status(500).json({ message: 'Mux no esta configurado en el servidor.' });
+    }
+
+    const { fileName, contentType } = req.body || {};
+    const origin = typeof req.headers.origin === 'string' && req.headers.origin ? req.headers.origin : undefined;
+
+    const payload = await muxApiRequest('/uploads', {
+      method: 'POST',
+      body: {
+        cors_origin: origin,
+        timeout: 3600,
+        new_asset_settings: {
+          playback_policy: ['public'],
+          mp4_support: 'standard',
+          passthrough: JSON.stringify({
+            courseId,
+            fileName: typeof fileName === 'string' ? fileName : null,
+            contentType: typeof contentType === 'string' ? contentType : null
+          })
+        }
+      }
+    });
+
+    return res.status(201).json({
+      uploadId: payload?.data?.id || null,
+      uploadUrl: payload?.data?.url || null,
+      status: payload?.data?.status || 'waiting',
+      timeout: payload?.data?.timeout || 3600
+    });
+  } catch (error) {
+    console.error('Mux upload creation error:', error);
+    return res.status(500).json({ message: 'No se pudo crear la carga en Mux.' });
+  }
+});
+
+router.get('/:id/lessons/mux-upload/:uploadId', authenticate, requireRole('admin'), async (req, res) => {
+  try {
+    const courseId = Number(req.params.id);
+    if (!courseId) {
+      return res.status(400).json({ message: 'Invalid course id' });
+    }
+
+    const [courseRows] = await pool.query('SELECT id FROM courses WHERE id = ?', [courseId]);
+    if (courseRows.length === 0) {
+      return res.status(404).json({ message: 'Course not found' });
+    }
+
+    const uploadId = String(req.params.uploadId || '').trim();
+    if (!uploadId) {
+      return res.status(400).json({ message: 'Invalid upload id' });
+    }
+
+    const uploadPayload = await muxApiRequest(`/uploads/${encodeURIComponent(uploadId)}`);
+    const uploadData = uploadPayload?.data || {};
+    const assetId = uploadData.asset_id || null;
+
+    if (!assetId) {
+      return res.json({
+        uploadId,
+        status: uploadData.status || 'waiting',
+        muxStatus: 'preparing',
+        assetId: null,
+        playbackId: null,
+        videoUrl: null
+      });
+    }
+
+    const assetPayload = await muxApiRequest(`/assets/${encodeURIComponent(assetId)}`);
+    const assetData = assetPayload?.data || {};
+    const playbackId = assetData?.playback_ids?.[0]?.id || null;
+
+    return res.json({
+      uploadId,
+      status: uploadData.status || 'asset_created',
+      muxStatus: assetData.status || 'unknown',
+      assetId,
+      playbackId,
+      videoUrl: playbackId ? `https://stream.mux.com/${playbackId}.m3u8` : null
+    });
+  } catch (error) {
+    console.error('Mux upload status error:', error);
+    return res.status(500).json({ message: 'No se pudo consultar el estado de la carga en Mux.' });
+  }
 });
 
 router.post('/', authenticate, requireRole('admin'), async (req, res) => {

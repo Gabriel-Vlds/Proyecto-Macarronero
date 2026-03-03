@@ -2,6 +2,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { firstValueFrom } from 'rxjs';
 import { CoursesService } from '../../core/services/courses.service';
 import { KitsService } from '../../core/services/kits.service';
 import { UsersService } from '../../core/services/users.service';
@@ -42,6 +43,9 @@ export class DashboardComponent implements OnInit {
     orderIndex: 1,
     durationMin: 10
   };
+  selectedVideoFile: File | null = null;
+  isUploadingVideo = false;
+  uploadProgressMessage = '';
 
   kitForm: Partial<Kit> = {
     name: '',
@@ -103,6 +107,11 @@ export class DashboardComponent implements OnInit {
       return;
     }
 
+    if (this.selectedVideoFile && !this.lessonForm.videoUrl) {
+      this.message = 'Primero sube el archivo de video a Mux y espera a que termine.';
+      return;
+    }
+
     this.coursesService.createLesson(this.lessonForm.courseId, {
       title: this.lessonForm.title,
       content: this.lessonForm.content,
@@ -120,11 +129,105 @@ export class DashboardComponent implements OnInit {
           orderIndex: 1,
           durationMin: 10
         };
+        this.selectedVideoFile = null;
+        this.uploadProgressMessage = '';
       },
       error: () => {
         this.message = 'No se pudo crear la leccion.';
       }
     });
+  }
+
+  onVideoFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.selectedVideoFile = input.files?.[0] || null;
+
+    if (this.selectedVideoFile) {
+      this.uploadProgressMessage = `Archivo seleccionado: ${this.selectedVideoFile.name}`;
+      this.lessonForm.videoUrl = '';
+      return;
+    }
+
+    this.uploadProgressMessage = '';
+  }
+
+  async uploadVideoToMuxAndAttach() {
+    if (!this.lessonForm.courseId) {
+      this.message = 'Selecciona un curso antes de subir el video.';
+      return;
+    }
+
+    if (!this.selectedVideoFile) {
+      this.message = 'Selecciona un archivo de video primero.';
+      return;
+    }
+
+    this.isUploadingVideo = true;
+
+    try {
+      this.uploadProgressMessage = 'Solicitando URL segura de carga a Mux...';
+      const uploadInit = await firstValueFrom(
+        this.coursesService.createMuxUpload(this.lessonForm.courseId, {
+          fileName: this.selectedVideoFile.name,
+          contentType: this.selectedVideoFile.type || 'application/octet-stream'
+        })
+      );
+
+      if (!uploadInit.uploadId || !uploadInit.uploadUrl) {
+        throw new Error('Respuesta invalida al crear carga de Mux.');
+      }
+
+      this.uploadProgressMessage = 'Subiendo archivo a Mux...';
+      const uploadResponse = await fetch(uploadInit.uploadUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': this.selectedVideoFile.type || 'application/octet-stream'
+        },
+        body: this.selectedVideoFile
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error(`Error subiendo archivo: ${uploadResponse.status}`);
+      }
+
+      this.uploadProgressMessage = 'Procesando video en Mux...';
+      let statusResponse: {
+        muxStatus: 'ready' | 'preparing' | 'errored' | 'unknown';
+        videoUrl: string | null;
+      } | null = null;
+
+      for (let attempt = 0; attempt < 30; attempt += 1) {
+        await this.sleep(4000);
+        statusResponse = await firstValueFrom(
+          this.coursesService.getMuxUploadStatus(this.lessonForm.courseId, uploadInit.uploadId)
+        );
+
+        if (statusResponse.muxStatus === 'ready' && statusResponse.videoUrl) {
+          break;
+        }
+
+        if (statusResponse.muxStatus === 'errored') {
+          throw new Error('Mux reporto error procesando el video.');
+        }
+      }
+
+      if (!statusResponse?.videoUrl) {
+        throw new Error('Mux todavia no genera playback. Intenta nuevamente en unos minutos.');
+      }
+
+      this.lessonForm.videoUrl = statusResponse.videoUrl;
+      this.message = 'Video cargado y procesado en Mux. Ya puedes crear la leccion.';
+      this.uploadProgressMessage = 'Video listo en Mux.';
+    } catch (error) {
+      console.error('Mux upload flow error:', error);
+      this.message = 'No se pudo subir/procesar el video en Mux.';
+    } finally {
+      this.isUploadingVideo = false;
+    }
+  }
+
+  private sleep(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   selectCourseForEdit() {

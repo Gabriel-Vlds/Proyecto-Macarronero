@@ -124,9 +124,23 @@
             <textarea [(ngModel)]="lessonForm.content" name="lessonContent"></textarea>
           </label>
           <label>
-            URL del video
-            <input [(ngModel)]="lessonForm.videoUrl" name="lessonVideoUrl" placeholder="https://..." />
+            Archivo de video (Mux)
+            <input type="file" accept="video/*" (change)="onVideoFileSelected($event)" />
           </label>
+          <button
+            class="btn btn--ghost"
+            type="button"
+            [disabled]="!selectedVideoFile || isUploadingVideo"
+            (click)="uploadVideoToMuxAndAttach()"
+          >
+            {{ isUploadingVideo ? 'Subiendo...' : 'Subir a Mux' }}
+          </button>
+          @if (uploadProgressMessage) {
+            <p class="note">{{ uploadProgressMessage }}</p>
+          }
+          @if (lessonForm.videoUrl) {
+            <p class="note">Video listo en Mux.</p>
+          }
           <div class="row">
             <label>
               Orden

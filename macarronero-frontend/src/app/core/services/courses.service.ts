@@ -35,6 +35,26 @@ export class CoursesService {
     return this.http.post<Lesson>(`${environment.apiBaseUrl}/courses/${courseId}/lessons`, payload);
   }
 
+  createMuxUpload(courseId: number, payload: { fileName?: string; contentType?: string }) {
+    return this.http.post<{
+      uploadId: string | null;
+      uploadUrl: string | null;
+      status: string;
+      timeout: number;
+    }>(`${environment.apiBaseUrl}/courses/${courseId}/lessons/mux-upload`, payload);
+  }
+
+  getMuxUploadStatus(courseId: number, uploadId: string) {
+    return this.http.get<{
+      uploadId: string;
+      status: string;
+      muxStatus: 'ready' | 'preparing' | 'errored' | 'unknown';
+      assetId: string | null;
+      playbackId: string | null;
+      videoUrl: string | null;
+    }>(`${environment.apiBaseUrl}/courses/${courseId}/lessons/mux-upload/${uploadId}`);
+  }
+
   create(payload: Partial<Course>) {
     return this.http.post<Course>(`${environment.apiBaseUrl}/courses`, payload);
   }
