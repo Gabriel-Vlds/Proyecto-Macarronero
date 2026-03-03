@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, finalize, of, timeout } from 'rxjs';
@@ -17,12 +17,12 @@ import { Enrollment } from '../../core/models/enrollment.model';
   styleUrl: './courses.component.css'
 })
 export class CoursesComponent implements OnInit {
-  courses: Course[] = [];
-  enrolledIds = new Set<number>();
-  loading = true;
-  buyingId: number | null = null;
-  error = '';
-  checkoutMessage = '';
+  courses = signal<Course[]>([]);
+  enrolledIds = signal<Set<number>>(new Set<number>());
+  loading = signal(true);
+  buyingId = signal<number | null>(null);
+  error = signal('');
+  checkoutMessage = signal('');
 
   constructor(
     private readonly coursesService: CoursesService,
@@ -36,9 +36,9 @@ export class CoursesComponent implements OnInit {
   ngOnInit() {
     const checkout = this.route.snapshot.queryParamMap.get('checkout');
     if (checkout === 'cancel') {
-      this.checkoutMessage = 'Pago cancelado. Puedes intentarlo nuevamente cuando quieras.';
+      this.checkoutMessage.set('Pago cancelado. Puedes intentarlo nuevamente cuando quieras.');
     } else if (checkout === 'success') {
-      this.checkoutMessage = 'Pago confirmado. Estamos actualizando tu acceso.';
+      this.checkoutMessage.set('Pago confirmado. Estamos actualizando tu acceso.');
     }
 
     this.coursesService
@@ -46,17 +46,19 @@ export class CoursesComponent implements OnInit {
       .pipe(
         timeout(15000),
         catchError((err) => {
-          this.error = err?.status === 0
-            ? 'No se pudo conectar con el servidor. Intenta de nuevo en unos segundos.'
-            : 'No se pudieron cargar los cursos.';
+          this.error.set(
+            err?.status === 0
+              ? 'No se pudo conectar con el servidor. Intenta de nuevo en unos segundos.'
+              : 'No se pudieron cargar los cursos.'
+          );
           return of([] as Course[]);
         }),
         finalize(() => {
-          this.loading = false;
+          this.loading.set(false);
         })
       )
       .subscribe((courses) => {
-        this.courses = courses;
+        this.courses.set(courses);
       });
 
     if (this.auth.isLoggedIn()) {
@@ -64,13 +66,13 @@ export class CoursesComponent implements OnInit {
         .list()
         .pipe(catchError(() => of([] as Enrollment[])))
         .subscribe((enrollments) => {
-          this.enrolledIds = new Set(enrollments.map((item) => Number(item.course_id)));
+          this.enrolledIds.set(new Set(enrollments.map((item) => Number(item.course_id))));
         });
     }
   }
 
   isEnrolled(courseId: number): boolean {
-    return this.enrolledIds.has(courseId);
+    return this.enrolledIds().has(courseId);
   }
 
   buy(course: Course) {
@@ -79,22 +81,26 @@ export class CoursesComponent implements OnInit {
       return;
     }
 
-    this.error = '';
-    this.buyingId = course.id;
+    this.error.set('');
+    this.buyingId.set(course.id);
 
     this.paymentsService
       .checkout('course', course.id)
       .pipe(
         catchError((err) => {
           if (err?.status === 409) {
-            this.enrolledIds.add(course.id);
+            this.enrolledIds.update((current) => {
+              const next = new Set(current);
+              next.add(course.id);
+              return next;
+            });
           } else {
-            this.error = err?.error?.message || 'No se pudo iniciar el pago.';
+            this.error.set(err?.error?.message || 'No se pudo iniciar el pago.');
           }
           return of(null);
         }),
         finalize(() => {
-          this.buyingId = null;
+          this.buyingId.set(null);
         })
       )
       .subscribe((result) => {

@@ -6,23 +6,23 @@
     </div>
   </div>
 
-  @if (checkoutMessage) {
-    <p class="note">{{ checkoutMessage }}</p>
+  @if (checkoutMessage()) {
+    <p class="note">{{ checkoutMessage() }}</p>
   }
 
-  @if (error) {
-    <p class="note">{{ error }}</p>
+  @if (error()) {
+    <p class="note">{{ error() }}</p>
   }
 
   <div class="grid">
-    @if (loading) {
+    @if (loading()) {
       <div class="skeleton"></div>
       <div class="skeleton"></div>
       <div class="skeleton"></div>
-    } @else if (courses.length === 0) {
+    } @else if (courses().length === 0) {
       <p class="note">No hay cursos publicados en este momento.</p>
     } @else {
-      @for (course of courses; track course.id) {
+      @for (course of courses(); track course.id) {
         <article class="tile">
           <span class="badge" [class.badge--premium]="course.tier === 'premium'">
             {{ course.tier === 'premium' ? 'Premium' : 'Basico' }}
@@ -40,8 +40,8 @@
             @if (isEnrolled(course.id)) {
               <a class="btn btn--primary" [routerLink]="['/courses', course.id]">Ver curso</a>
             } @else {
-              <button class="btn btn--primary" (click)="buy(course)" [disabled]="buyingId === course.id">
-                {{ buyingId === course.id ? 'Procesando...' : 'Comprar $' + course.price }}
+              <button class="btn btn--primary" (click)="buy(course)" [disabled]="buyingId() === course.id">
+                {{ buyingId() === course.id ? 'Procesando...' : 'Comprar $' + course.price }}
               </button>
             }
           </div>
