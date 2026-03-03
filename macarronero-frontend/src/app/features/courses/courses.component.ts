@@ -2,7 +2,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { catchError, finalize, of, timeout } from 'rxjs';
+import { catchError, finalize, of } from 'rxjs';
 import { CoursesService } from '../../core/services/courses.service';
 import { EnrollmentsService } from '../../core/services/enrollments.service';
 import { PaymentsService } from '../../core/services/payments.service';
@@ -45,7 +45,6 @@ export class CoursesComponent implements OnInit {
     this.coursesService
       .list()
       .pipe(
-        timeout(8000),
         catchError((err) => {
           this.error = err?.status === 0
             ? 'No se pudo conectar con el servidor. Intenta de nuevo en unos segundos.'
