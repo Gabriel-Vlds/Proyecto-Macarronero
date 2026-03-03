@@ -74,12 +74,20 @@
               <div class="lesson__body no-select">
                 <p>{{ lesson.content }}</p>
                 @if (lesson.video_url) {
-                  @if (getMuxPlaybackId(lesson.video_url); as playbackId) {
-                    <mux-player
-                      [attr.playback-id]="playbackId"
-                      stream-type="on-demand"
-                      controls
-                    ></mux-player>
+                  @if (getMuxPlaybackId(lesson); as playbackId) {
+                    @if (lesson.mux_status === 'ready' || !lesson.mux_status) {
+                      <mux-player
+                        [attr.playback-id]="playbackId"
+                        stream-type="on-demand"
+                        controls
+                      ></mux-player>
+                    } @else if (lesson.mux_status === 'preparing') {
+                      <p class="cd__status">El video se esta procesando en Mux. Intenta de nuevo en 1-2 minutos.</p>
+                    } @else if (lesson.mux_status === 'errored') {
+                      <p class="cd__status cd__status--error">Mux reporto un error procesando este video. Vuelve a cargar la leccion.</p>
+                    } @else {
+                      <p class="cd__status">El estado del video aun no esta disponible.</p>
+                    }
                   } @else {
                     <p>
                       <a [href]="lesson.video_url" target="_blank" rel="noopener noreferrer">Ver video de la leccion</a>

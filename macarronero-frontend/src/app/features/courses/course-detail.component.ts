@@ -112,9 +112,13 @@ export class CourseDetailComponent implements OnInit, OnDestroy {
     return map[level] ?? level;
   }
 
-  getMuxPlaybackId(videoUrl?: string | null): string | null {
-    if (!videoUrl) return null;
-    const match = videoUrl.match(/stream\.mux\.com\/([^.?/]+)/i);
+  getMuxPlaybackId(lesson: Lesson): string | null {
+    if (lesson.mux_playback_id) {
+      return lesson.mux_playback_id;
+    }
+
+    if (!lesson.video_url) return null;
+    const match = lesson.video_url.match(/stream\.mux\.com\/([^.?/]+)/i);
     return match?.[1] ?? null;
   }
 

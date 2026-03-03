@@ -21,6 +21,86 @@ function isMuxPlaybackUrl(url) {
   return typeof url === 'string' && /stream\.mux\.com\/.+\.(m3u8|mp4)/i.test(url);
 }
 
+function getMuxPlaybackIdFromUrl(url) {
+  if (!url || typeof url !== 'string') {
+    return null;
+  }
+
+  const match = url.match(/stream\.mux\.com\/([^.?/]+)/i);
+  return match?.[1] ?? null;
+}
+
+function getMuxAuthHeader() {
+  if (!config.mux.tokenId || !config.mux.tokenSecret) {
+    return null;
+  }
+
+  return `Basic ${Buffer.from(`${config.mux.tokenId}:${config.mux.tokenSecret}`).toString('base64')}`;
+}
+
+async function getMuxAssetStatusByPlaybackId(playbackId) {
+  const authHeader = getMuxAuthHeader();
+  if (!authHeader) {
+    return 'unknown';
+  }
+
+  const playbackResponse = await fetch(`https://api.mux.com/video/v1/playback-ids/${playbackId}`, {
+    headers: {
+      Authorization: authHeader
+    }
+  });
+
+  if (!playbackResponse.ok) {
+    return 'unknown';
+  }
+
+  const playbackPayload = await playbackResponse.json();
+  const assetId = playbackPayload?.data?.object?.id;
+  if (!assetId) {
+    return 'unknown';
+  }
+
+  const assetResponse = await fetch(`https://api.mux.com/video/v1/assets/${assetId}`, {
+    headers: {
+      Authorization: authHeader
+    }
+  });
+
+  if (!assetResponse.ok) {
+    return 'unknown';
+  }
+
+  const assetPayload = await assetResponse.json();
+  return assetPayload?.data?.status || 'unknown';
+}
+
+async function enrichLessonWithMuxStatus(lesson) {
+  const playbackId = getMuxPlaybackIdFromUrl(lesson.video_url);
+  if (!playbackId) {
+    return {
+      ...lesson,
+      mux_playback_id: null,
+      mux_status: null
+    };
+  }
+
+  try {
+    const status = await getMuxAssetStatusByPlaybackId(playbackId);
+    return {
+      ...lesson,
+      mux_playback_id: playbackId,
+      mux_status: status
+    };
+  } catch (error) {
+    console.error('Mux status read error:', error);
+    return {
+      ...lesson,
+      mux_playback_id: playbackId,
+      mux_status: 'unknown'
+    };
+  }
+}
+
 async function createMuxPlaybackUrlFromSource(sourceUrl) {
   if (!config.mux.tokenId || !config.mux.tokenSecret) {
     return sourceUrl;
@@ -133,7 +213,8 @@ router.get('/:id/lessons', authenticate, async (req, res) => {
       [courseId]
     );
 
-    return res.json(lessons);
+    const lessonsWithStatus = await Promise.all(lessons.map((lesson) => enrichLessonWithMuxStatus(lesson)));
+    return res.json(lessonsWithStatus);
   } catch (error) {
     console.error('Courses lessons error:', error);
     return res.status(500).json({ message: 'Server error loading lessons' });
