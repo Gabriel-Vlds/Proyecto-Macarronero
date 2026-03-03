@@ -1,5 +1,6 @@
 // Endpoints para cursos disponibles en la plataforma.
 const express = require('express');
+const jwt = require('jsonwebtoken');
 const { pool } = require('../db');
 const { config } = require('../config');
 const { authenticate, requireRole } = require('../middleware/auth');
@@ -62,10 +63,43 @@ async function muxApiRequest(path, options = {}) {
   return response.json();
 }
 
-async function getMuxAssetStatusByPlaybackId(playbackId) {
+function getMuxSigningPrivateKey() {
+  if (!config.mux.signingKeyPrivate) {
+    return null;
+  }
+
+  return config.mux.signingKeyPrivate.replace(/\\n/g, '\n');
+}
+
+function createMuxPlaybackToken(playbackId, user) {
+  if (!playbackId || !config.mux.signingKeyId) {
+    return null;
+  }
+
+  const privateKey = getMuxSigningPrivateKey();
+  if (!privateKey) {
+    return null;
+  }
+
+  const nowSeconds = Math.floor(Date.now() / 1000);
+  const payload = {
+    sub: playbackId,
+    aud: 'v',
+    exp: nowSeconds + 60 * 10,
+    user_id: user?.id || undefined,
+    user_email: user?.email || undefined
+  };
+
+  return jwt.sign(payload, privateKey, {
+    algorithm: 'RS256',
+    keyid: config.mux.signingKeyId
+  });
+}
+
+async function getMuxAssetInfoByPlaybackId(playbackId) {
   const authHeader = getMuxAuthHeader();
   if (!authHeader) {
-    return 'unknown';
+    return { status: 'unknown', signedPlaybackId: null };
   }
 
   const playbackResponse = await fetch(`https://api.mux.com/video/v1/playback-ids/${playbackId}`, {
@@ -75,13 +109,13 @@ async function getMuxAssetStatusByPlaybackId(playbackId) {
   });
 
   if (!playbackResponse.ok) {
-    return 'unknown';
+    return { status: 'unknown', signedPlaybackId: null };
   }
 
   const playbackPayload = await playbackResponse.json();
   const assetId = playbackPayload?.data?.object?.id;
   if (!assetId) {
-    return 'unknown';
+    return { status: 'unknown', signedPlaybackId: null };
   }
 
   const assetResponse = await fetch(`https://api.mux.com/video/v1/assets/${assetId}`, {
@@ -91,35 +125,48 @@ async function getMuxAssetStatusByPlaybackId(playbackId) {
   });
 
   if (!assetResponse.ok) {
-    return 'unknown';
+    return { status: 'unknown', signedPlaybackId: null };
   }
 
   const assetPayload = await assetResponse.json();
-  return assetPayload?.data?.status || 'unknown';
+  const signedPlaybackId = assetPayload?.data?.playback_ids?.find((item) => item.policy === 'signed')?.id || null;
+
+  return {
+    status: assetPayload?.data?.status || 'unknown',
+    signedPlaybackId
+  };
 }
 
-async function enrichLessonWithMuxStatus(lesson) {
+async function enrichLessonWithMuxStatus(lesson, user) {
   const playbackId = getMuxPlaybackIdFromUrl(lesson.video_url);
   if (!playbackId) {
     return {
       ...lesson,
       mux_playback_id: null,
+      mux_signed_playback_id: null,
+      mux_playback_token: null,
       mux_status: null
     };
   }
 
   try {
-    const status = await getMuxAssetStatusByPlaybackId(playbackId);
+    const assetInfo = await getMuxAssetInfoByPlaybackId(playbackId);
+    const playbackToken = assetInfo.signedPlaybackId ? createMuxPlaybackToken(assetInfo.signedPlaybackId, user) : null;
+
     return {
       ...lesson,
       mux_playback_id: playbackId,
-      mux_status: status
+      mux_signed_playback_id: assetInfo.signedPlaybackId,
+      mux_playback_token: playbackToken,
+      mux_status: assetInfo.status
     };
   } catch (error) {
     console.error('Mux status read error:', error);
     return {
       ...lesson,
       mux_playback_id: playbackId,
+      mux_signed_playback_id: null,
+      mux_playback_token: null,
       mux_status: 'unknown'
     };
   }
@@ -139,7 +186,7 @@ async function createMuxPlaybackUrlFromSource(sourceUrl) {
     },
     body: JSON.stringify({
       input: [{ url: sourceUrl }],
-      playback_policy: ['public']
+      playback_policy: ['public', 'signed']
     })
   });
 
@@ -245,7 +292,7 @@ router.get('/:id/lessons', authenticate, async (req, res) => {
       [courseId]
     );
 
-    const lessonsWithStatus = await Promise.all(lessons.map((lesson) => enrichLessonWithMuxStatus(lesson)));
+    const lessonsWithStatus = await Promise.all(lessons.map((lesson) => enrichLessonWithMuxStatus(lesson, req.user)));
     return res.json(lessonsWithStatus);
   } catch (error) {
     console.error('Courses lessons error:', error);
@@ -326,7 +373,7 @@ router.post('/:id/lessons/mux-upload', authenticate, requireRole('admin'), async
         cors_origin: origin,
         timeout: 3600,
         new_asset_settings: {
-          playback_policy: ['public'],
+          playback_policy: ['public', 'signed'],
           mp4_support: 'standard',
           passthrough: JSON.stringify({
             courseId,

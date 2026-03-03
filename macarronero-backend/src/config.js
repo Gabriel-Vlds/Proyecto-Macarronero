@@ -27,7 +27,9 @@ db: {
   },
   mux: {
     tokenId: process.env.MUX_TOKEN_ID || '',
-    tokenSecret: process.env.MUX_TOKEN_SECRET || ''
+    tokenSecret: process.env.MUX_TOKEN_SECRET || '',
+    signingKeyId: process.env.MUX_SIGNING_KEY_ID || '',
+    signingKeyPrivate: process.env.MUX_SIGNING_KEY_PRIVATE || ''
   }
 };
 

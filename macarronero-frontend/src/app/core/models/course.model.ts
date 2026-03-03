@@ -17,6 +17,8 @@ export interface Lesson {
   content: string;
   video_url?: string | null;
   mux_playback_id?: string | null;
+  mux_signed_playback_id?: string | null;
+  mux_playback_token?: string | null;
   mux_status?: 'ready' | 'preparing' | 'errored' | 'unknown' | null;
   order_index: number;
   duration_min?: number | null;

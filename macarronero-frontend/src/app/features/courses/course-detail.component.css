@@ -152,6 +152,29 @@
   overflow: hidden;
 }
 
+.lesson__video-wrap {
+  position: relative;
+  margin-top: 0.75rem;
+}
+
+.lesson__video-wrap mux-player {
+  margin-top: 0;
+}
+
+.lesson__watermark {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.6rem;
+  z-index: 2;
+  pointer-events: none;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.92);
+  background: rgba(0, 0, 0, 0.45);
+  padding: 0.2rem 0.45rem;
+  border-radius: 6px;
+  letter-spacing: 0.01em;
+}
+
 /* ── Anti-grabacion: sin seleccion de texto ────── */
 .no-select {
   -webkit-user-select: none;

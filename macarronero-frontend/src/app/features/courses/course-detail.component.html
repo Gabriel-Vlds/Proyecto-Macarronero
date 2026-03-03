@@ -76,11 +76,15 @@
                 @if (lesson.video_url) {
                   @if (getMuxPlaybackId(lesson); as playbackId) {
                     @if (lesson.mux_status === 'ready' || !lesson.mux_status) {
-                      <mux-player
-                        [attr.playback-id]="playbackId"
-                        stream-type="on-demand"
-                        controls
-                      ></mux-player>
+                      <div class="lesson__video-wrap">
+                        <mux-player
+                          [attr.playback-id]="playbackId"
+                          [attr.playback-token]="lesson.mux_playback_token || null"
+                          stream-type="on-demand"
+                          controls
+                        ></mux-player>
+                        <div class="lesson__watermark">{{ getLessonWatermark(lesson) }}</div>
+                      </div>
                     } @else if (lesson.mux_status === 'preparing') {
                       <p class="cd__status">El video se esta procesando en Mux. Intenta de nuevo en 1-2 minutos.</p>
                     } @else if (lesson.mux_status === 'errored') {

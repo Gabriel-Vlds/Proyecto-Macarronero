@@ -26,6 +26,7 @@ export class CourseDetailComponent implements OnInit, OnDestroy {
   screenBlocked = false;
   expandedId: number | null = null;
   buying = false;
+  private readonly sessionFingerprint = Math.random().toString(36).slice(2, 8).toUpperCase();
   private readonly cleanup: Array<() => void> = [];
 
   constructor(
@@ -113,6 +114,10 @@ export class CourseDetailComponent implements OnInit, OnDestroy {
   }
 
   getMuxPlaybackId(lesson: Lesson): string | null {
+    if (lesson.mux_signed_playback_id) {
+      return lesson.mux_signed_playback_id;
+    }
+
     if (lesson.mux_playback_id) {
       return lesson.mux_playback_id;
     }
@@ -120,6 +125,12 @@ export class CourseDetailComponent implements OnInit, OnDestroy {
     if (!lesson.video_url) return null;
     const match = lesson.video_url.match(/stream\.mux\.com\/([^.?/]+)/i);
     return match?.[1] ?? null;
+  }
+
+  getLessonWatermark(lesson: Lesson) {
+    const user = this.auth.user();
+    const identity = user?.email || `user-${user?.id || 'anon'}`;
+    return `${identity} · L${lesson.id} · ${this.sessionFingerprint}`;
   }
 
   buyNow() {
