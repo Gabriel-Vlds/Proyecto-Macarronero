@@ -7,6 +7,14 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const auth = inject(AuthService);
   const token = auth.getToken();
 
+  const isPublicGetRequest =
+    req.method === 'GET' &&
+    (/\/courses(?:\/\d+)?$/.test(req.url) || /\/kits$/.test(req.url));
+
+  if (isPublicGetRequest) {
+    return next(req);
+  }
+
   if (!token) {
     return next(req);
   }
