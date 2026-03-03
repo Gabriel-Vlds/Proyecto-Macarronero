@@ -93,6 +93,44 @@ router.get('/:id/lessons', authenticate, async (req, res) => {
   return res.json(lessons);
 });
 
+router.post('/:id/lessons', authenticate, requireRole('admin'), async (req, res) => {
+  const courseId = Number(req.params.id);
+  if (!courseId) return res.status(400).json({ message: 'Invalid course id' });
+
+  const { title, content, videoUrl, orderIndex, durationMin } = req.body;
+  if (!title) {
+    return res.status(400).json({ message: 'Missing lesson title' });
+  }
+
+  const [courseRows] = await pool.query('SELECT id FROM courses WHERE id = ?', [courseId]);
+  if (courseRows.length === 0) {
+    return res.status(404).json({ message: 'Course not found' });
+  }
+
+  const order = Number(orderIndex);
+  const duration = durationMin == null || durationMin === '' ? null : Number(durationMin);
+
+  const [result] = await pool.query(
+    `INSERT INTO lessons (course_id, title, content, video_url, order_index, duration_min)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+    [
+      courseId,
+      title,
+      content || '',
+      videoUrl || null,
+      Number.isFinite(order) && order > 0 ? order : 1,
+      Number.isFinite(duration) && duration > 0 ? duration : null
+    ]
+  );
+
+  const [rows] = await pool.query(
+    'SELECT id, title, content, video_url, order_index, duration_min FROM lessons WHERE id = ?',
+    [result.insertId]
+  );
+
+  return res.status(201).json(rows[0]);
+});
+
 router.post('/', authenticate, requireRole('admin'), async (req, res) => {
   const { title, description, price, tier, level, coverUrl } = req.body;
 

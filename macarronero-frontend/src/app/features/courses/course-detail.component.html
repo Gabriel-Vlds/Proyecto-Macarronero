@@ -73,6 +73,11 @@
             @if (expandedId === lesson.id) {
               <div class="lesson__body no-select">
                 <p>{{ lesson.content }}</p>
+                @if (lesson.video_url) {
+                  <p>
+                    <a [href]="lesson.video_url" target="_blank" rel="noopener noreferrer">Ver video de la leccion</a>
+                  </p>
+                }
               </div>
             }
           </div>

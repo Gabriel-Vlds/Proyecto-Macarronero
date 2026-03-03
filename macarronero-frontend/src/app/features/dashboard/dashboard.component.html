@@ -70,6 +70,39 @@
     </div>
 
     <div class="panel">
+      <h2>Nueva leccion</h2>
+      <form (ngSubmit)="createLesson()">
+        <label>
+          ID del curso
+          <input type="number" [(ngModel)]="lessonForm.courseId" name="lessonCourseId" required />
+        </label>
+        <label>
+          Titulo
+          <input [(ngModel)]="lessonForm.title" name="lessonTitle" required />
+        </label>
+        <label>
+          Contenido
+          <textarea [(ngModel)]="lessonForm.content" name="lessonContent"></textarea>
+        </label>
+        <label>
+          URL del video
+          <input [(ngModel)]="lessonForm.videoUrl" name="lessonVideoUrl" placeholder="https://..." />
+        </label>
+        <div class="row">
+          <label>
+            Orden
+            <input type="number" [(ngModel)]="lessonForm.orderIndex" name="lessonOrderIndex" min="1" />
+          </label>
+          <label>
+            Duracion (min)
+            <input type="number" [(ngModel)]="lessonForm.durationMin" name="lessonDurationMin" min="1" />
+          </label>
+        </div>
+        <button class="btn btn--primary" type="submit">Crear leccion</button>
+      </form>
+    </div>
+
+    <div class="panel">
       <h2>Actualizar cliente</h2>
       <form (ngSubmit)="updateUser()">
         <label>

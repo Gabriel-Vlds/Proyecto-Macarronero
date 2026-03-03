@@ -22,6 +22,19 @@ export class CoursesService {
     return this.http.get<Lesson[]>(`${environment.apiBaseUrl}/courses/${id}/lessons`);
   }
 
+  createLesson(
+    courseId: number,
+    payload: {
+      title: string;
+      content?: string;
+      videoUrl?: string | null;
+      orderIndex?: number;
+      durationMin?: number | null;
+    }
+  ) {
+    return this.http.post<Lesson>(`${environment.apiBaseUrl}/courses/${courseId}/lessons`, payload);
+  }
+
   create(payload: Partial<Course>) {
     return this.http.post<Course>(`${environment.apiBaseUrl}/courses`, payload);
   }

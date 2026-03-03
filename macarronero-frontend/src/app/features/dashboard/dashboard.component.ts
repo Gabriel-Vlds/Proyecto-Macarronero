@@ -30,6 +30,15 @@ export class DashboardComponent implements OnInit {
     level: 'beginner'
   };
 
+  lessonForm = {
+    courseId: 0,
+    title: '',
+    content: '',
+    videoUrl: '',
+    orderIndex: 1,
+    durationMin: 10
+  };
+
   kitForm: Partial<Kit> = {
     name: '',
     description: '',
@@ -75,6 +84,36 @@ export class DashboardComponent implements OnInit {
       },
       error: () => {
         this.message = 'No se pudo crear el curso.';
+      }
+    });
+  }
+
+  createLesson() {
+    if (!this.lessonForm.courseId || !this.lessonForm.title.trim()) {
+      this.message = 'Indica el ID del curso y el titulo de la leccion.';
+      return;
+    }
+
+    this.coursesService.createLesson(this.lessonForm.courseId, {
+      title: this.lessonForm.title,
+      content: this.lessonForm.content,
+      videoUrl: this.lessonForm.videoUrl || null,
+      orderIndex: this.lessonForm.orderIndex,
+      durationMin: this.lessonForm.durationMin
+    }).subscribe({
+      next: () => {
+        this.message = 'Leccion creada.';
+        this.lessonForm = {
+          courseId: this.lessonForm.courseId,
+          title: '',
+          content: '',
+          videoUrl: '',
+          orderIndex: 1,
+          durationMin: 10
+        };
+      },
+      error: () => {
+        this.message = 'No se pudo crear la leccion.';
       }
     });
   }
