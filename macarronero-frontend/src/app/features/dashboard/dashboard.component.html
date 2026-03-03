@@ -76,8 +76,13 @@
       }
       <form (ngSubmit)="createLesson()">
         <label>
-          ID del curso
-          <input type="number" [(ngModel)]="lessonForm.courseId" name="lessonCourseId" required />
+          Curso
+          <select [(ngModel)]="lessonForm.courseId" name="lessonCourseId" required>
+            <option [ngValue]="0">Selecciona un curso</option>
+            @for (course of courses; track course.id) {
+              <option [ngValue]="course.id">{{ course.title }} (ID {{ course.id }})</option>
+            }
+          </select>
         </label>
         <label>
           Titulo
@@ -106,6 +111,58 @@
     </div>
 
     <div class="panel">
+      <h2>Editar curso</h2>
+      <label>
+        Selecciona curso
+        <select [(ngModel)]="selectedCourseId" name="selectedCourseId" (ngModelChange)="selectCourseForEdit()">
+          <option [ngValue]="0">Selecciona un curso</option>
+          @for (course of courses; track course.id) {
+            <option [ngValue]="course.id">{{ course.title }} (ID {{ course.id }})</option>
+          }
+        </select>
+      </label>
+
+      @if (selectedCourse) {
+        <div class="panel__editor">
+          <label>
+            Titulo
+            <input [(ngModel)]="selectedCourse.title" name="selectedCourseTitle" />
+          </label>
+          <label>
+            Descripcion
+            <textarea [(ngModel)]="selectedCourse.description" name="selectedCourseDescription"></textarea>
+          </label>
+          <div class="row row--fields">
+            <label>
+              Precio
+              <input type="number" [(ngModel)]="selectedCourse.price" name="selectedCoursePrice" />
+            </label>
+            <label>
+              Nivel
+              <select [(ngModel)]="selectedCourse.level" name="selectedCourseLevel">
+                <option value="beginner">Principiante</option>
+                <option value="intermediate">Intermedio</option>
+                <option value="advanced">Avanzado</option>
+              </select>
+            </label>
+          </div>
+          <label>
+            Tipo
+            <select [(ngModel)]="selectedCourse.tier" name="selectedCourseTier">
+              <option value="basic">Basico</option>
+              <option value="premium">Premium</option>
+            </select>
+          </label>
+          <div class="row row--actions">
+            <button class="btn btn--primary" type="button" (click)="assignSelectedCourseToLesson()">Crear leccion</button>
+            <button class="btn btn--ghost" type="button" (click)="saveSelectedCourse()">Guardar</button>
+            <button class="btn btn--danger" type="button" (click)="deleteSelectedCourse()">Eliminar</button>
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="panel">
       <h2>Actualizar cliente</h2>
       <form (ngSubmit)="updateUser()">
         <label>
@@ -131,35 +188,6 @@
       </form>
     </div>
   </div>
-
-  <section class="list">
-    <h2>Cursos existentes</h2>
-    <div class="list__grid">
-      @for (course of courses; track course.id) {
-        <article class="card">
-          <input [(ngModel)]="course.title" name="courseTitle{{ course.id }}" />
-          <textarea [(ngModel)]="course.description" name="courseDesc{{ course.id }}"></textarea>
-          <div class="row row--fields">
-            <input type="number" [(ngModel)]="course.price" name="coursePrice{{ course.id }}" />
-            <select [(ngModel)]="course.level" name="courseLevel{{ course.id }}">
-              <option value="beginner">Principiante</option>
-              <option value="intermediate">Intermedio</option>
-              <option value="advanced">Avanzado</option>
-            </select>
-          </div>
-          <select [(ngModel)]="course.tier" name="courseTier{{ course.id }}">
-            <option value="basic">Basico</option>
-            <option value="premium">Premium</option>
-          </select>
-          <div class="row row--actions">
-            <button class="btn btn--primary" (click)="prepareLesson(course)">Crear leccion</button>
-            <button class="btn btn--ghost" (click)="updateCourse(course)">Guardar</button>
-            <button class="btn btn--danger" (click)="deleteCourse(course.id)">Eliminar</button>
-          </div>
-        </article>
-      }
-    </div>
-  </section>
 
   <section class="list">
     <h2>Kits existentes</h2>

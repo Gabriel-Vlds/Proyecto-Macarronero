@@ -21,6 +21,8 @@ export class DashboardComponent implements OnInit {
   kits: Kit[] = [];
   users: User[] = [];
   message = '';
+  selectedCourseId = 0;
+  selectedCourse: Course | null = null;
 
   courseForm: Partial<Course> = {
     title: '',
@@ -118,9 +120,44 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  prepareLesson(course: Course) {
-    this.lessonForm.courseId = course.id;
-    this.message = `Curso seleccionado para lecciones: ${course.title} (ID ${course.id}).`;
+  selectCourseForEdit() {
+    const found = this.courses.find((item) => item.id === Number(this.selectedCourseId));
+    this.selectedCourse = found
+      ? {
+          ...found,
+          price: Number(found.price)
+        }
+      : null;
+  }
+
+  saveSelectedCourse() {
+    if (!this.selectedCourse) {
+      this.message = 'Selecciona un curso para guardar cambios.';
+      return;
+    }
+
+    this.updateCourse(this.selectedCourse);
+  }
+
+  deleteSelectedCourse() {
+    if (!this.selectedCourse) {
+      this.message = 'Selecciona un curso para eliminar.';
+      return;
+    }
+
+    this.deleteCourse(this.selectedCourse.id);
+    this.selectedCourse = null;
+    this.selectedCourseId = 0;
+  }
+
+  assignSelectedCourseToLesson() {
+    if (!this.selectedCourse) {
+      this.message = 'Selecciona un curso para crear la leccion.';
+      return;
+    }
+
+    this.lessonForm.courseId = this.selectedCourse.id;
+    this.message = `Curso seleccionado para lecciones: ${this.selectedCourse.title} (ID ${this.selectedCourse.id}).`;
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
