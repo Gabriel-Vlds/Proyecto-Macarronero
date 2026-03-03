@@ -1,6 +1,8 @@
 // Configuracion central del backend: puerto, DB, JWT y CORS.
 require('dotenv').config();
 
+const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:4200';
+
 const config = {
   port: Number(process.env.PORT || 3000),
   
@@ -20,8 +22,8 @@ db: {
   stripe: {
     secretKey: process.env.STRIPE_SECRET_KEY || '',
     webhookSecret: process.env.STRIPE_WEBHOOK_SECRET || '',
-    successUrl: process.env.STRIPE_SUCCESS_URL || 'http://localhost:4200/account?checkout=success',
-    cancelUrl: process.env.STRIPE_CANCEL_URL || 'http://localhost:4200/?checkout=cancel'
+    successUrl: process.env.STRIPE_SUCCESS_URL || `${frontendUrl}/courses?checkout=success`,
+    cancelUrl: process.env.STRIPE_CANCEL_URL || `${frontendUrl}/courses?checkout=cancel`
   }
 };
 

@@ -7,13 +7,27 @@ const { authenticate } = require('../middleware/auth');
 const router = express.Router();
 const stripe = config.stripe.secretKey ? require('stripe')(config.stripe.secretKey) : null;
 
+function appendQueryParams(baseUrl, params) {
+  try {
+    const parsed = new URL(baseUrl);
+    for (const [key, value] of Object.entries(params)) {
+      parsed.searchParams.set(key, String(value));
+    }
+    return parsed.toString();
+  } catch {
+    return baseUrl;
+  }
+}
+
 /**
  * Crea una sesion de Stripe Checkout para comprar un curso o kit.
  * Body: { type: 'course' | 'kit', itemId: number, quantity?: number }
  */
 router.post('/checkout', authenticate, async (req, res) => {
   if (!stripe) {
-    return res.status(500).json({ message: 'Stripe is not configured' });
+    return res.status(503).json({
+      message: 'Stripe no esta configurado. Define STRIPE_SECRET_KEY (modo prueba) en Render.'
+    });
   }
 
   const { type, itemId, quantity = 1 } = req.body;
@@ -64,8 +78,8 @@ router.post('/checkout', authenticate, async (req, res) => {
           product_data: { name }
         }
       }],
-      success_url: `${config.stripe.successUrl}&type=${type}&itemId=${itemId}`,
-      cancel_url: config.stripe.cancelUrl,
+      success_url: appendQueryParams(config.stripe.successUrl, { type, itemId }),
+      cancel_url: appendQueryParams(config.stripe.cancelUrl, { type, itemId }),
       metadata,
       client_reference_id: String(req.user.id)
     });
