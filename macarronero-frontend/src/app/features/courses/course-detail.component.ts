@@ -3,6 +3,7 @@ import { Component, CUSTOM_ELEMENTS_SCHEMA, OnDestroy, OnInit } from '@angular/c
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, finalize, of, timeout } from 'rxjs';
+import { ChangeDetectorRef } from '@angular/core';
 import { CoursesService } from '../../core/services/courses.service';
 import { PaymentsService } from '../../core/services/payments.service';
 import { AuthService } from '../../core/auth/auth.service';
@@ -32,7 +33,8 @@ export class CourseDetailComponent implements OnInit, OnDestroy {
     private readonly router: Router,
     private readonly coursesService: CoursesService,
     private readonly paymentsService: PaymentsService,
-    public readonly auth: AuthService
+    public readonly auth: AuthService,
+    private readonly cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
@@ -51,6 +53,7 @@ export class CourseDetailComponent implements OnInit, OnDestroy {
       .subscribe((course) => {
         if (!course) {
           this.loading = false;
+          this.render();
           return;
         }
 
@@ -60,6 +63,7 @@ export class CourseDetailComponent implements OnInit, OnDestroy {
         } else {
           this.notEnrolled = true;
           this.loading = false;
+          this.render();
         }
       });
 
@@ -78,20 +82,24 @@ export class CourseDetailComponent implements OnInit, OnDestroy {
         catchError((err) => {
           if (err?.status === 403 || err?.status === 401) {
             this.notEnrolled = true;
+            this.render();
             return of([] as Lesson[]);
           }
 
           this.error = err?.status === 0
             ? 'No se pudo conectar para cargar las lecciones.'
             : 'No se pudieron cargar las lecciones.';
+          this.render();
           return of([] as Lesson[]);
         }),
         finalize(() => {
           this.loading = false;
+          this.render();
         })
       )
       .subscribe((lessons) => {
         this.lessons = lessons;
+        this.render();
       });
   }
 
@@ -128,19 +136,26 @@ export class CourseDetailComponent implements OnInit, OnDestroy {
         if (err?.status === 409) {
           this.notEnrolled = false;
           this.loading = true;
+          this.render();
           this.loadLessons(this.course!.id);
         } else {
           this.error = err?.error?.message || 'No se pudo iniciar el pago.';
+          this.render();
         }
 
         return of(null);
       })
     ).subscribe((res) => {
       this.buying = false;
+      this.render();
       if (res?.url) {
         window.location.href = res.url;
       }
     });
+  }
+
+  private render() {
+    this.cdr.detectChanges();
   }
 
   private attachGuards() {
