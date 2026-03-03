@@ -15,6 +15,10 @@
     <p class="note">{{ checkoutMessage }}</p>
   }
 
+  <p class="note">
+    DEBUG cursos -> loading: {{ debugState.loading }}, count: {{ debugState.count }}, first: {{ debugState.firstTitle }}, error: {{ debugState.error }}
+  </p>
+
   <div class="grid">
     @if (loading) {
       <div class="skeleton"></div>

@@ -26,6 +26,15 @@ export class CoursesComponent implements OnInit {
   error = '';
   checkoutMessage = '';
 
+  get debugState() {
+    return {
+      loading: this.loading,
+      count: this.courses.length,
+      firstTitle: this.courses[0]?.title || 'N/A',
+      error: this.error || 'none'
+    };
+  }
+
   constructor(
     private readonly coursesService: CoursesService,
     private readonly enrollmentsService: EnrollmentsService,
