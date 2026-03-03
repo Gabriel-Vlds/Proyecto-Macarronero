@@ -2,7 +2,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { firstValueFrom } from 'rxjs';
+import { catchError, finalize, firstValueFrom, of, timeout } from 'rxjs';
 import { CoursesService } from '../../core/services/courses.service';
 import { KitsService } from '../../core/services/kits.service';
 import { UsersService } from '../../core/services/users.service';
@@ -21,6 +21,9 @@ export class DashboardComponent implements OnInit {
   courses: Course[] = [];
   kits: Kit[] = [];
   users: User[] = [];
+  isLoadingCourses = false;
+  coursesLoadError = '';
+  private coursesRequestVersion = 0;
   message = '';
   selectedCourseId = 0;
   selectedCourse: Course | null = null;
@@ -39,6 +42,7 @@ export class DashboardComponent implements OnInit {
     courseId: 0,
     title: '',
     content: '',
+    muxPlaybackId: '',
     videoUrl: '',
     orderIndex: 1,
     durationMin: 10
@@ -72,7 +76,7 @@ export class DashboardComponent implements OnInit {
   }
 
   refresh() {
-    this.coursesService.list().subscribe((items) => (this.courses = items));
+    this.loadCourses();
     this.kitsService.list().subscribe((items) => {
       this.kits = items;
       if (this.selectedKitId) {
@@ -80,6 +84,10 @@ export class DashboardComponent implements OnInit {
       }
     });
     this.usersService.list().subscribe((items) => (this.users = items));
+  }
+
+  retryCoursesLoad() {
+    this.loadCourses();
   }
 
   createCourse() {
@@ -112,10 +120,12 @@ export class DashboardComponent implements OnInit {
       return;
     }
 
+    const normalizedVideoUrl = this.normalizeMuxVideoInput(this.lessonForm.videoUrl, this.lessonForm.muxPlaybackId);
+
     this.coursesService.createLesson(this.lessonForm.courseId, {
       title: this.lessonForm.title,
       content: this.lessonForm.content,
-      videoUrl: this.lessonForm.videoUrl || null,
+      videoUrl: normalizedVideoUrl,
       orderIndex: this.lessonForm.orderIndex,
       durationMin: this.lessonForm.durationMin
     }).subscribe({
@@ -125,6 +135,7 @@ export class DashboardComponent implements OnInit {
           courseId: this.lessonForm.courseId,
           title: '',
           content: '',
+          muxPlaybackId: '',
           videoUrl: '',
           orderIndex: 1,
           durationMin: 10
@@ -228,6 +239,66 @@ export class DashboardComponent implements OnInit {
 
   private sleep(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  private loadCourses() {
+    const requestVersion = ++this.coursesRequestVersion;
+    this.isLoadingCourses = true;
+    this.coursesLoadError = '';
+
+    this.coursesService
+      .list()
+      .pipe(
+        timeout(15000),
+        catchError((error) => {
+          if (requestVersion !== this.coursesRequestVersion) {
+            return of([] as Course[]);
+          }
+
+          this.coursesLoadError =
+            error?.status === 0
+              ? 'No se pudo conectar para cargar cursos. Verifica backend y red.'
+              : 'No se pudieron cargar los cursos del panel.';
+          this.courses = [];
+          this.selectedCourse = null;
+          this.selectedCourseId = 0;
+          this.lessonForm.courseId = 0;
+          return of([] as Course[]);
+        }),
+        finalize(() => {
+          if (requestVersion === this.coursesRequestVersion) {
+            this.isLoadingCourses = false;
+          }
+        })
+      )
+      .subscribe((items) => {
+        if (requestVersion !== this.coursesRequestVersion) {
+          return;
+        }
+
+        this.courses = items;
+
+        if (this.selectedCourseId && !items.some((item) => item.id === Number(this.selectedCourseId))) {
+          this.selectedCourseId = 0;
+          this.selectedCourse = null;
+        } else if (this.selectedCourseId) {
+          this.selectCourseForEdit();
+        }
+
+        if (this.lessonForm.courseId && !items.some((item) => item.id === Number(this.lessonForm.courseId))) {
+          this.lessonForm.courseId = 0;
+        }
+      });
+  }
+
+  private normalizeMuxVideoInput(videoUrl: string, playbackId: string) {
+    const cleanPlaybackId = (playbackId || '').trim();
+    if (cleanPlaybackId) {
+      return `https://stream.mux.com/${cleanPlaybackId}.m3u8`;
+    }
+
+    const cleanVideoUrl = (videoUrl || '').trim();
+    return cleanVideoUrl || null;
   }
 
   selectCourseForEdit() {

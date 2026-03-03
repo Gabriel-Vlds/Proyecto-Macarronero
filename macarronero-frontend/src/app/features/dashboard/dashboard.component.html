@@ -52,13 +52,32 @@
         <h3>Editar curso</h3>
         <label>
           Selecciona curso
-          <select [(ngModel)]="selectedCourseId" name="selectedCourseId" (ngModelChange)="selectCourseForEdit()">
-            <option [ngValue]="0">Selecciona un curso</option>
-            @for (course of courses; track course.id) {
-              <option [ngValue]="course.id">{{ course.title }} (ID {{ course.id }})</option>
+          <select
+            [(ngModel)]="selectedCourseId"
+            name="selectedCourseId"
+            (ngModelChange)="selectCourseForEdit()"
+            [disabled]="isLoadingCourses || courses.length === 0"
+          >
+            @if (isLoadingCourses) {
+              <option [ngValue]="0">Cargando cursos...</option>
+            } @else if (coursesLoadError && courses.length === 0) {
+              <option [ngValue]="0">Error cargando cursos</option>
+            } @else if (!courses.length) {
+              <option [ngValue]="0">No hay cursos disponibles</option>
+            } @else {
+              <option [ngValue]="0">Selecciona un curso</option>
+              @for (course of courses; track course.id) {
+                <option [ngValue]="course.id">{{ course.title }} (ID {{ course.id }})</option>
+              }
             }
           </select>
         </label>
+        @if (coursesLoadError) {
+          <p class="note">
+            {{ coursesLoadError }}
+            <button class="btn btn--ghost" type="button" (click)="retryCoursesLoad()">Reintentar</button>
+          </p>
+        }
 
         @if (selectedCourse) {
           <div class="panel__editor">
@@ -108,10 +127,23 @@
         <form (ngSubmit)="createLesson()">
           <label>
             Curso
-            <select [(ngModel)]="lessonForm.courseId" name="lessonCourseId" required>
-              <option [ngValue]="0">Selecciona un curso</option>
-              @for (course of courses; track course.id) {
-                <option [ngValue]="course.id">{{ course.title }} (ID {{ course.id }})</option>
+            <select
+              [(ngModel)]="lessonForm.courseId"
+              name="lessonCourseId"
+              required
+              [disabled]="isLoadingCourses || courses.length === 0"
+            >
+              @if (isLoadingCourses) {
+                <option [ngValue]="0">Cargando cursos...</option>
+              } @else if (coursesLoadError && courses.length === 0) {
+                <option [ngValue]="0">Error cargando cursos</option>
+              } @else if (!courses.length) {
+                <option [ngValue]="0">No hay cursos disponibles</option>
+              } @else {
+                <option [ngValue]="0">Selecciona un curso</option>
+                @for (course of courses; track course.id) {
+                  <option [ngValue]="course.id">{{ course.title }} (ID {{ course.id }})</option>
+                }
               }
             </select>
           </label>
@@ -131,7 +163,15 @@
               placeholder="https://stream.mux.com/PLAYBACK_ID.m3u8"
             />
           </label>
-          <p class="note">Puedes usar URL manual o subir archivo a Mux.</p>
+          <label>
+            Playback ID de Mux (opcional)
+            <input
+              [(ngModel)]="lessonForm.muxPlaybackId"
+              name="lessonMuxPlaybackId"
+              placeholder="ejemplo: abc123XYZ"
+            />
+          </label>
+          <p class="note">Puedes usar Playback ID, URL manual o subir archivo a Mux. Si pones Playback ID, tiene prioridad.</p>
           <label>
             Archivo de video (Mux)
             <input type="file" accept="video/*" (change)="onVideoFileSelected($event)" />

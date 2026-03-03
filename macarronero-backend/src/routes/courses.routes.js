@@ -159,36 +159,44 @@ async function createMuxPlaybackUrlFromSource(sourceUrl) {
 
 // Lista todos los cursos (publico, sin contenido protegido)
 router.get('/', async (req, res) => {
-  let [rows] = await pool.query(`SELECT ${COURSE_FIELDS} FROM courses`);
+  const startedAt = Date.now();
 
-  if (rows.length === 0) {
-    const [insertResult] = await pool.query(
-      'INSERT INTO courses (title, description, price, tier, level, cover_url) VALUES (?, ?, ?, ?, ?, ?)',
-      [
-        DEMO_COURSE.title,
-        DEMO_COURSE.description,
-        DEMO_COURSE.price,
-        DEMO_COURSE.tier,
-        DEMO_COURSE.level,
-        DEMO_COURSE.coverUrl
-      ]
-    );
+  try {
+    let [rows] = await pool.query(`SELECT ${COURSE_FIELDS} FROM courses`);
 
-    await pool.query(
-      'INSERT INTO lessons (course_id, title, content, order_index, duration_min) VALUES (?, ?, ?, ?, ?)',
-      [
-        insertResult.insertId,
-        'Lección de prueba: Bienvenida',
-        'Esta lección existe para validar el flujo de compra y visualización protegida.',
-        1,
-        8
-      ]
-    );
+    if (rows.length === 0) {
+      const [insertResult] = await pool.query(
+        'INSERT INTO courses (title, description, price, tier, level, cover_url) VALUES (?, ?, ?, ?, ?, ?)',
+        [
+          DEMO_COURSE.title,
+          DEMO_COURSE.description,
+          DEMO_COURSE.price,
+          DEMO_COURSE.tier,
+          DEMO_COURSE.level,
+          DEMO_COURSE.coverUrl
+        ]
+      );
 
-    [rows] = await pool.query(`SELECT ${COURSE_FIELDS} FROM courses WHERE id = ?`, [insertResult.insertId]);
+      await pool.query(
+        'INSERT INTO lessons (course_id, title, content, order_index, duration_min) VALUES (?, ?, ?, ?, ?)',
+        [
+          insertResult.insertId,
+          'Lección de prueba: Bienvenida',
+          'Esta lección existe para validar el flujo de compra y visualización protegida.',
+          1,
+          8
+        ]
+      );
+
+      [rows] = await pool.query(`SELECT ${COURSE_FIELDS} FROM courses WHERE id = ?`, [insertResult.insertId]);
+    }
+
+    console.info(`[courses:list] ok count=${rows.length} durationMs=${Date.now() - startedAt}`);
+    return res.json(rows);
+  } catch (error) {
+    console.error(`[courses:list] error durationMs=${Date.now() - startedAt}`, error);
+    return res.status(500).json({ message: 'Server error loading courses' });
   }
-
-  return res.json(rows);
 });
 
 // Devuelve el detalle de un curso (publico — solo metadatos).
