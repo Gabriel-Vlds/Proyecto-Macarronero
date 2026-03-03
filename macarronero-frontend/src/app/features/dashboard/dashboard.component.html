@@ -139,7 +139,7 @@
         <article class="card">
           <input [(ngModel)]="course.title" name="courseTitle{{ course.id }}" />
           <textarea [(ngModel)]="course.description" name="courseDesc{{ course.id }}"></textarea>
-          <div class="row">
+          <div class="row row--fields">
             <input type="number" [(ngModel)]="course.price" name="coursePrice{{ course.id }}" />
             <select [(ngModel)]="course.level" name="courseLevel{{ course.id }}">
               <option value="beginner">Principiante</option>
@@ -151,7 +151,7 @@
             <option value="basic">Basico</option>
             <option value="premium">Premium</option>
           </select>
-          <div class="row">
+          <div class="row row--actions">
             <button class="btn btn--primary" (click)="prepareLesson(course)">Crear leccion</button>
             <button class="btn btn--ghost" (click)="updateCourse(course)">Guardar</button>
             <button class="btn btn--danger" (click)="deleteCourse(course.id)">Eliminar</button>
@@ -168,11 +168,11 @@
         <article class="card">
           <input [(ngModel)]="kit.name" name="kitName{{ kit.id }}" />
           <textarea [(ngModel)]="kit.description" name="kitDesc{{ kit.id }}"></textarea>
-          <div class="row">
+          <div class="row row--fields">
             <input type="number" [(ngModel)]="kit.price" name="kitPrice{{ kit.id }}" />
             <input type="number" [(ngModel)]="kit.stock" name="kitStock{{ kit.id }}" />
           </div>
-          <div class="row">
+          <div class="row row--actions">
             <button class="btn btn--ghost" (click)="updateKit(kit)">Guardar</button>
             <button class="btn btn--danger" (click)="deleteKit(kit.id)">Eliminar</button>
           </div>
