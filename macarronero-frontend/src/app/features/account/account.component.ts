@@ -2,8 +2,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { finalize, of, Subscription as RxSub, timeout } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, finalize, of, Subscription, timeout } from 'rxjs';
 import { AuthService } from '../../core/auth/auth.service';
 import { EnrollmentsService } from '../../core/services/enrollments.service';
 import { PurchasesService } from '../../core/services/purchases.service';
@@ -25,7 +24,7 @@ export class AccountComponent implements OnInit, OnDestroy {
   enrollmentsError = '';
   purchasesError = '';
   checkoutMessage = '';
-  private subs: RxSub[] = [];
+  private subs: Subscription[] = [];
 
   constructor(
     public readonly auth: AuthService,
@@ -55,6 +54,7 @@ export class AccountComponent implements OnInit, OnDestroy {
   }
 
   loadAccountData() {
+    // Reinicia estado de carga y errores cada vez que se reintenta.
     this.loadingEnrollments = true;
     this.loadingPurchases = true;
     this.enrollmentsError = '';
@@ -77,6 +77,7 @@ export class AccountComponent implements OnInit, OnDestroy {
           return of([] as Enrollment[]);
         }),
         finalize(() => {
+          // Garantiza que el panel de cursos salga de "Cargando..." incluso si falla.
           this.loadingEnrollments = false;
         })
       )
@@ -98,6 +99,7 @@ export class AccountComponent implements OnInit, OnDestroy {
           return of([] as Purchase[]);
         }),
         finalize(() => {
+          // Garantiza que el panel de kits salga de "Cargando..." incluso si falla.
           this.loadingPurchases = false;
         })
       )
