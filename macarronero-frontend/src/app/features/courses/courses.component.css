@@ -1,12 +1,8 @@
-/* Estilos de la vista de cursos. */
 .page {
   padding: 2.5rem 0;
 }
 
 .page__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-bottom: 2rem;
 }
 
@@ -28,14 +24,14 @@
 .meta {
   display: flex;
   justify-content: space-between;
-  font-size: 0.9rem;
   color: var(--color-muted);
+  font-size: 0.9rem;
 }
 
 .actions {
   display: flex;
-  gap: 0.75rem;
   align-items: center;
+  gap: 0.75rem;
 }
 
 .note {
@@ -58,102 +54,4 @@
   100% {
     background-position: 0 0;
   }
-}
-
-/* ── Planes de suscripción ── */
-.plans {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2.5rem;
-}
-
-.plan-card {
-  background: var(--color-surface);
-  border-radius: 18px;
-  padding: 2rem 1.5rem;
-  box-shadow: var(--shadow-soft);
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  border: 2px solid transparent;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.plan-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 28px rgba(0,0,0,0.12);
-}
-
-.plan-card--premium {
-  border-color: var(--color-accent);
-  background: linear-gradient(145deg, #fffdf8, #fff8ee);
-}
-
-.plan-card h3 {
-  font-size: 1.35rem;
-  margin: 0;
-}
-
-.plan-price {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--color-accent);
-}
-
-.plan-card ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  color: var(--color-muted);
-  font-size: 0.9rem;
-  flex: 1;
-}
-
-.plan-card ul li::before {
-  content: "✓ ";
-  color: var(--color-accent);
-  font-weight: 700;
-}
-
-/* ── Banner de suscripción activa ── */
-.sub-banner {
-  background: var(--color-accent);
-  color: #fff;
-  border-radius: 14px;
-  padding: 1rem 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-bottom: 2rem;
-  font-size: 0.95rem;
-}
-
-.sub-banner strong {
-  font-size: 1.05rem;
-}
-
-/* ── Badge de tier en tarjeta de curso ── */
-.tier-badge {
-  font-size: 0.75rem;
-  padding: 0.2rem 0.6rem;
-  border-radius: 30px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.tier-badge--basic {
-  background: #e8f5e9;
-  color: #2e7d32;
-}
-
-.tier-badge--premium {
-  background: #fff3e0;
-  color: #e65100;
 }

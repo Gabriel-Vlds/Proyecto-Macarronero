@@ -1,13 +1,8 @@
-// Servicio HTTP para consultar cursos.
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { map } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { Course, Lesson } from '../models/course.model';
-
-type CoursesListResponse =
-  | Course[]
-  | { data?: unknown[]; courses?: unknown[]; items?: unknown[]; rows?: unknown[]; result?: unknown[]; value?: unknown[] };
 
 @Injectable({ providedIn: 'root' })
 export class CoursesService {
@@ -15,8 +10,8 @@ export class CoursesService {
 
   list() {
     return this.http
-      .get<CoursesListResponse>(`${environment.apiBaseUrl}/courses`)
-      .pipe(map((response) => this.extractList(response).map((item, index) => this.normalizeCourse(item, index))));
+      .get<unknown>(`${environment.apiBaseUrl}/courses`)
+      .pipe(map((response) => this.toArray(response).map((item, index) => this.toCourse(item, index))));
   }
 
   getById(id: number) {
@@ -39,58 +34,48 @@ export class CoursesService {
     return this.http.delete<void>(`${environment.apiBaseUrl}/courses/${id}`);
   }
 
-  private extractList(response: CoursesListResponse): unknown[] {
+  private toArray(response: unknown): unknown[] {
     if (Array.isArray(response)) {
       return response;
     }
 
-    if (Array.isArray(response?.data)) {
-      return response.data;
+    if (!response || typeof response !== 'object') {
+      return [];
     }
 
-    if (Array.isArray(response?.courses)) {
-      return response.courses;
+    const container = response as Record<string, unknown>;
+    const candidates = ['data', 'courses', 'items', 'rows', 'result', 'value'] as const;
+
+    for (const key of candidates) {
+      const value = container[key];
+      if (Array.isArray(value)) {
+        return value;
+      }
     }
 
-    if (Array.isArray(response?.items)) {
-      return response.items;
-    }
-
-    if (Array.isArray(response?.rows)) {
-      return response.rows;
-    }
-
-    if (Array.isArray(response?.result)) {
-      return response.result;
-    }
-
-    if (Array.isArray(response?.value)) {
-      return response.value;
-    }
-
-    throw new Error('Unexpected courses response shape');
+    return [];
   }
 
-  private normalizeCourse(item: unknown, index: number): Course {
+  private toCourse(item: unknown, index: number): Course {
     const source = (item && typeof item === 'object' ? item : {}) as Record<string, unknown>;
     const fallbackId = index + 1;
-    const rawId = source['id'] ?? source['course_id'] ?? fallbackId;
-    const normalizedId = Number(rawId) || fallbackId;
 
-    const normalizedTier = source['tier'] === 'premium' ? 'premium' : 'basic';
-    const rawLevel = typeof source['level'] === 'string' ? source['level'] : '';
-    const normalizedLevel =
-      rawLevel === 'beginner' || rawLevel === 'intermediate' || rawLevel === 'advanced'
-        ? rawLevel
+    const idValue = source['id'] ?? source['course_id'] ?? fallbackId;
+    const id = Number(idValue) || fallbackId;
+
+    const levelValue = typeof source['level'] === 'string' ? source['level'] : 'beginner';
+    const level =
+      levelValue === 'beginner' || levelValue === 'intermediate' || levelValue === 'advanced'
+        ? levelValue
         : 'beginner';
 
     return {
-      id: normalizedId,
-      title: String(source['title'] ?? source['course_title'] ?? source['name'] ?? `Curso ${normalizedId}`),
-      description: String(source['description'] ?? source['summary'] ?? ''),
+      id,
+      title: String(source['title'] ?? source['course_title'] ?? `Curso ${id}`),
+      description: String(source['description'] ?? ''),
       price: Number(source['price'] ?? source['amount'] ?? 0),
-      tier: normalizedTier,
-      level: normalizedLevel,
+      tier: source['tier'] === 'premium' ? 'premium' : 'basic',
+      level,
       cover_url: (source['cover_url'] ?? source['coverUrl'] ?? null) as string | null
     };
   }
