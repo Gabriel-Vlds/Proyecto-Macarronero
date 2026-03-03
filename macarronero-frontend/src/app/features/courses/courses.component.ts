@@ -2,7 +2,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { catchError, finalize, of } from 'rxjs';
+import { catchError, finalize, of, tap, timeout } from 'rxjs';
 import { CoursesService } from '../../core/services/courses.service';
 import { EnrollmentsService } from '../../core/services/enrollments.service';
 import { PaymentsService } from '../../core/services/payments.service';
@@ -18,6 +18,7 @@ import { Enrollment } from '../../core/models/enrollment.model';
   styleUrl: './courses.component.css'
 })
 export class CoursesComponent implements OnInit {
+  private readonly coursesCacheKey = 'mr_courses_cache';
   courses: Course[] = [];
   enrolledIds = new Set<number>();
   loading = true;
@@ -45,7 +46,17 @@ export class CoursesComponent implements OnInit {
     this.coursesService
       .list()
       .pipe(
+        timeout(25000),
+        tap((courses) => {
+          localStorage.setItem(this.coursesCacheKey, JSON.stringify(courses));
+        }),
         catchError((err) => {
+          const cachedCourses = this.loadCachedCourses();
+          if (cachedCourses.length > 0) {
+            this.error = 'Mostrando cursos guardados por conexión lenta. Recarga en unos segundos para actualizar.';
+            return of(cachedCourses);
+          }
+
           this.error = err?.status === 0
             ? 'No se pudo conectar con el servidor. Intenta de nuevo en unos segundos.'
             : 'No se pudieron cargar los cursos.';
@@ -93,6 +104,20 @@ export class CoursesComponent implements OnInit {
       this.buyingId = null;
       if (res?.url) window.location.href = res.url;
     });
+  }
+
+  private loadCachedCourses(): Course[] {
+    const raw = localStorage.getItem(this.coursesCacheKey);
+    if (!raw) {
+      return [];
+    }
+
+    try {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed as Course[] : [];
+    } catch {
+      return [];
+    }
   }
 }
 
