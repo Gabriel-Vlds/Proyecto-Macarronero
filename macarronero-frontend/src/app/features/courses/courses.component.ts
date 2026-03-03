@@ -73,7 +73,8 @@ export class CoursesComponent implements OnInit {
     if (this.auth.isLoggedIn()) {
       this.enrollmentsService.list().subscribe({
         next: (enrollments: Enrollment[]) => {
-          this.enrolledIds = new Set(enrollments.map(e => e.course_id));
+          const safeEnrollments = Array.isArray(enrollments) ? enrollments : [];
+          this.enrolledIds = new Set(safeEnrollments.map((enrollment) => Number(enrollment.course_id)));
         },
         error: () => {}
       });
