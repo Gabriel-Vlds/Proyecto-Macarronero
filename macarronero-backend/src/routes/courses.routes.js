@@ -89,45 +89,55 @@ router.get('/', async (req, res) => {
 
 // Devuelve el detalle de un curso (publico — solo metadatos).
 router.get('/:id', async (req, res) => {
-  const courseId = Number(req.params.id);
-  if (!courseId) return res.status(400).json({ message: 'Invalid course id' });
+  try {
+    const courseId = Number(req.params.id);
+    if (!courseId) return res.status(400).json({ message: 'Invalid course id' });
 
-  const [courseRows] = await pool.query(
-    `SELECT ${COURSE_FIELDS} FROM courses WHERE id = ?`,
-    [courseId]
-  );
+    const [courseRows] = await pool.query(
+      `SELECT ${COURSE_FIELDS} FROM courses WHERE id = ?`,
+      [courseId]
+    );
 
-  if (courseRows.length === 0) {
-    return res.status(404).json({ message: 'Course not found' });
+    if (courseRows.length === 0) {
+      return res.status(404).json({ message: 'Course not found' });
+    }
+
+    return res.json(courseRows[0]);
+  } catch (error) {
+    console.error('Courses detail error:', error);
+    return res.status(500).json({ message: 'Server error loading course detail' });
   }
-
-  return res.json(courseRows[0]);
 });
 
 // Devuelve las lecciones de un curso. Requiere estar inscrito (o ser admin).
 router.get('/:id/lessons', authenticate, async (req, res) => {
-  const courseId = Number(req.params.id);
-  if (!courseId) return res.status(400).json({ message: 'Invalid course id' });
+  try {
+    const courseId = Number(req.params.id);
+    if (!courseId) return res.status(400).json({ message: 'Invalid course id' });
 
-  const [courseRows] = await pool.query('SELECT id FROM courses WHERE id = ?', [courseId]);
-  if (courseRows.length === 0) return res.status(404).json({ message: 'Course not found' });
+    const [courseRows] = await pool.query('SELECT id FROM courses WHERE id = ?', [courseId]);
+    if (courseRows.length === 0) return res.status(404).json({ message: 'Course not found' });
 
-  if (req.user.role !== 'admin') {
-    const [enrollRows] = await pool.query(
-      'SELECT id FROM enrollments WHERE user_id = ? AND course_id = ? LIMIT 1',
-      [req.user.id, courseId]
-    );
-    if (enrollRows.length === 0) {
-      return res.status(403).json({ message: 'Necesitas comprar este curso para acceder.' });
+    if (req.user.role !== 'admin') {
+      const [enrollRows] = await pool.query(
+        'SELECT id FROM enrollments WHERE user_id = ? AND course_id = ? LIMIT 1',
+        [req.user.id, courseId]
+      );
+      if (enrollRows.length === 0) {
+        return res.status(403).json({ message: 'Necesitas comprar este curso para acceder.' });
+      }
     }
+
+    const [lessons] = await pool.query(
+      'SELECT id, title, content, video_url, order_index, duration_min FROM lessons WHERE course_id = ? ORDER BY order_index ASC',
+      [courseId]
+    );
+
+    return res.json(lessons);
+  } catch (error) {
+    console.error('Courses lessons error:', error);
+    return res.status(500).json({ message: 'Server error loading lessons' });
   }
-
-  const [lessons] = await pool.query(
-    'SELECT id, title, content, video_url, order_index, duration_min FROM lessons WHERE course_id = ? ORDER BY order_index ASC',
-    [courseId]
-  );
-
-  return res.json(lessons);
 });
 
 router.post('/:id/lessons', authenticate, requireRole('admin'), async (req, res) => {

@@ -2,7 +2,7 @@
 import { Component, CUSTOM_ELEMENTS_SCHEMA, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { catchError, of } from 'rxjs';
+import { catchError, finalize, of, timeout } from 'rxjs';
 import { CoursesService } from '../../core/services/courses.service';
 import { PaymentsService } from '../../core/services/payments.service';
 import { AuthService } from '../../core/auth/auth.service';
@@ -39,8 +39,21 @@ export class CourseDetailComponent implements OnInit, OnDestroy {
     const courseId = Number(this.route.snapshot.paramMap.get('id'));
     if (!courseId) { this.error = 'Curso invalido.'; this.loading = false; return; }
 
-    this.coursesService.getById(courseId).subscribe({
-      next: (course) => {
+    this.coursesService
+      .getById(courseId)
+      .pipe(
+        timeout(12000),
+        catchError(() => {
+          this.error = 'No se pudo cargar el curso.';
+          return of(null);
+        })
+      )
+      .subscribe((course) => {
+        if (!course) {
+          this.loading = false;
+          return;
+        }
+
         this.course = course;
         if (this.auth.isLoggedIn()) {
           this.loadLessons(courseId);
@@ -48,9 +61,7 @@ export class CourseDetailComponent implements OnInit, OnDestroy {
           this.notEnrolled = true;
           this.loading = false;
         }
-      },
-      error: () => { this.error = 'No se pudo cargar el curso.'; this.loading = false; }
-    });
+      });
 
     this.attachGuards();
   }
@@ -60,14 +71,28 @@ export class CourseDetailComponent implements OnInit, OnDestroy {
   }
 
   private loadLessons(courseId: number) {
-    this.coursesService.getLessons(courseId).subscribe({
-      next: (lessons) => { this.lessons = lessons; this.loading = false; },
-      error: (err) => {
-        if (err?.status === 403 || err?.status === 401) { this.notEnrolled = true; }
-        else { this.error = 'No se pudieron cargar las lecciones.'; }
-        this.loading = false;
-      }
-    });
+    this.coursesService
+      .getLessons(courseId)
+      .pipe(
+        timeout(15000),
+        catchError((err) => {
+          if (err?.status === 403 || err?.status === 401) {
+            this.notEnrolled = true;
+            return of([] as Lesson[]);
+          }
+
+          this.error = err?.status === 0
+            ? 'No se pudo conectar para cargar las lecciones.'
+            : 'No se pudieron cargar las lecciones.';
+          return of([] as Lesson[]);
+        }),
+        finalize(() => {
+          this.loading = false;
+        })
+      )
+      .subscribe((lessons) => {
+        this.lessons = lessons;
+      });
   }
 
   toggle(id: number) {
