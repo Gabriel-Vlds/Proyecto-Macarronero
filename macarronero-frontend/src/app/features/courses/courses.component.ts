@@ -19,6 +19,7 @@ import { Enrollment } from '../../core/models/enrollment.model';
 })
 export class CoursesComponent implements OnInit {
   private readonly coursesCacheKey = 'mr_courses_cache';
+  private loadingWatchdogId: ReturnType<typeof setTimeout> | null = null;
   courses: Course[] = [];
   enrolledIds = new Set<number>();
   loading = true;
@@ -52,6 +53,8 @@ export class CoursesComponent implements OnInit {
       this.checkoutMessage = 'Pago confirmado. Estamos actualizando tu acceso.';
     }
 
+    this.startLoadingWatchdog();
+
     this.coursesService
       .list()
       .pipe(
@@ -72,6 +75,7 @@ export class CoursesComponent implements OnInit {
           return of([] as Course[]);
         }),
         finalize(() => {
+          this.clearLoadingWatchdog();
           this.loading = false;
         })
       )
@@ -127,6 +131,32 @@ export class CoursesComponent implements OnInit {
       return Array.isArray(parsed) ? parsed as Course[] : [];
     } catch {
       return [];
+    }
+  }
+
+  private startLoadingWatchdog() {
+    this.clearLoadingWatchdog();
+    this.loadingWatchdogId = setTimeout(() => {
+      if (!this.loading) {
+        return;
+      }
+
+      const cachedCourses = this.loadCachedCourses();
+      if (cachedCourses.length > 0) {
+        this.courses = cachedCourses;
+        this.error = 'Conexión lenta detectada. Mostrando cursos guardados temporalmente.';
+      } else {
+        this.error = 'La carga está tardando demasiado. Recarga la página en unos segundos.';
+      }
+
+      this.loading = false;
+    }, 12000);
+  }
+
+  private clearLoadingWatchdog() {
+    if (this.loadingWatchdogId) {
+      clearTimeout(this.loadingWatchdogId);
+      this.loadingWatchdogId = null;
     }
   }
 }
