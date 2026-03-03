@@ -6,6 +6,17 @@ Este proyecto contiene:
 - Un backend en Node.js + Express + MySQL.
 - Un frontend en Angular para la experiencia de usuarios.
 
+## Actualizacion Marzo 2026
+
+Cambios relevantes incorporados en la version actual:
+- Integracion de Mux para carga de videos desde panel admin.
+- Soporte de `playback_id` y URL manual al crear lecciones.
+- Reproduccion con token firmado (signed playback) cuando hay signing key configurada.
+- Watermark dinamico visible sobre el reproductor para disuasion.
+- Robustecimiento de `Mi cuenta` para evitar cargas indefinidas en cursos/kits.
+- Endpoints de cursos, enrollments y purchases con mejor manejo de errores y logs.
+- Limpieza de redundancias y codigo sin uso.
+
 ## Estructura general
 
 ### Raiz del repositorio
@@ -51,7 +62,6 @@ Este proyecto contiene:
 - src/app/app.routes.ts: Rutas de la aplicacion.
 - src/app/app.config.ts: Configuracion de providers.
 - src/app/app.spec.ts: Pruebas del componente raiz.
-- src/app/core/api.config.ts: URL base del backend.
 - src/app/core/auth/auth.service.ts: Gestion de sesion y usuario actual.
 - src/app/core/auth/auth.guard.ts: Proteccion de rutas.
 - src/app/core/auth/auth.interceptor.ts: Inyeccion de token en requests.
@@ -83,13 +93,23 @@ Este proyecto contiene:
 
 #### Variables de entorno del backend
 - `PORT`: Puerto donde corre la API (por defecto 3000).
+- `FRONTEND_URL`: URL base del frontend para redirects de pago.
 - `DB_HOST`: Host de MySQL (ej. localhost).
+- `DB_PORT`: Puerto de MySQL.
 - `DB_USER`: Usuario de MySQL.
 - `DB_PASSWORD`: Contrasenia de MySQL.
 - `DB_NAME`: Nombre de la base de datos.
 - `JWT_SECRET`: Clave para firmar tokens.
 - `JWT_EXPIRES_IN`: Duracion del token (ej. 7d).
 - `CORS_ORIGIN`: Origen permitido (ej. http://localhost:4200).
+- `STRIPE_SECRET_KEY`: Clave secreta de Stripe.
+- `STRIPE_WEBHOOK_SECRET`: Secreto de webhook Stripe.
+- `STRIPE_SUCCESS_URL`: URL de retorno en pago exitoso.
+- `STRIPE_CANCEL_URL`: URL de retorno en cancelacion.
+- `MUX_TOKEN_ID`: Token ID de Mux para API de video.
+- `MUX_TOKEN_SECRET`: Token Secret de Mux para API de video.
+- `MUX_SIGNING_KEY_ID`: Key ID para playback firmado de Mux.
+- `MUX_SIGNING_KEY_PRIVATE`: Private key PEM para playback firmado.
 
 ### Frontend (Angular)
 1) Entrar a la carpeta:
@@ -170,10 +190,15 @@ CREATE TABLE IF NOT EXISTS courses (
 - **Retorna**: Array de cursos con informacion basica.
 
 #### GET /api/courses/:id
-- **Descripcion**: Obtiene detalle de un curso especifico.
+- **Descripcion**: Obtiene metadatos publicos de un curso especifico.
+- **Autenticacion**: No requerida.
+- **Retorna**: Objeto curso o 404 si no existe.
+
+#### GET /api/courses/:id/lessons
+- **Descripcion**: Obtiene lecciones de un curso.
 - **Autenticacion**: Requerida.
-- **Autorizacion**: Usuario debe tener una inscripcion (enrollment) activa o ser admin.
-- **Retorna**: Objeto curso completo o error 403 si no tiene acceso.
+- **Autorizacion**: Usuario inscrito en el curso o admin.
+- **Retorna**: Lecciones con estado de Mux y datos de playback.
 
 #### POST /api/courses
 - **Descripcion**: Crea un nuevo curso.
@@ -374,6 +399,8 @@ Para el flujo de pagos de cursos:
 - **Autenticacion**: JWT requerido para acceder a detalles de cursos.
 - **Autorizacion**: Verificacion de enrollment o role admin en backend.
 - **Anti-captura**: Bloqueo automatico de pantalla al perder foco.
+- **Mux signed playback**: Token temporal por usuario/sesion cuando hay signing key.
+- **Watermark dinamico**: Identificador visible en el reproductor de lecciones.
 - **CORS**: Restriccion de origen configurada en el backend.
 - **SQL Injection**: Uso de consultas parametrizadas en todas las queries.
 
@@ -399,5 +426,9 @@ Para el flujo de pagos de cursos:
 - Rutas configuradas en app.routes.ts.
 - Navegacion funcional desde el header.
 - Flujo completo de compra y acceso a cursos.
+
+## Pendiente conocido
+
+- `npm run test` en frontend presenta fallo base de `app.spec.ts` por provider de routing en entorno de prueba (preexistente, no bloquea build ni funcionamiento en runtime).
 
 
